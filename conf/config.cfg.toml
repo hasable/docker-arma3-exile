@@ -1,0 +1,16 @@
+[template]
+src = "config.cfg.tpl"
+dest = "/opt/arma3/@ExileServer/config.cfg"
+owner = 1000
+group = 1000
+keys = [
+	"/exile/config/hostname",
+	"/exile/config/password",
+	"/exile/config/password/admin",
+	"/exile/config/password/command",
+	"/exile/config/maxplayers",
+	"/exile/config/von",
+	"/exile/config/motd",
+	"/exile/config/mission",
+	"/exile/config/difficulty"
+]

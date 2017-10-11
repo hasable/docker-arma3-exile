@@ -1,0 +1,12 @@
+[template]
+src = "extdb-conf.ini.tpl"
+dest = "/opt/arma3/@ExileServer/extdb-conf.ini"
+owner = 1000
+group = 1000
+keys = [
+	"/exile/database/host",
+	"/exile/database/name",
+	"/exile/database/user",
+	"/exile/database/pass",
+	"/exile/database/port"
+]
