@@ -1,4 +1,4 @@
-FROM hasable/arma3:latest
+FROM hasable/a3-server:latest
 LABEL maintainer='hasable'
 
 USER root
