@@ -1,4 +1,4 @@
-FROM hasable/a3-server:1.76.141764
+FROM hasable/a3-server:latest
 LABEL maintainer='hasable'
 
 USER root
