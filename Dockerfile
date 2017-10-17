@@ -63,6 +63,8 @@ RUN mv battleye/* /opt/arma3/battleye/ \
 	&& mv mpmissions/* /opt/arma3/mpmissions/ \
 	&& mv tbbmalloc.dll /opt/arma3/ \
 	&& mv @ExileServer /opt/arma3
+# Update battleye scripts
+COPY conf/scripts.txt /opt/arma3/battleye
 
 # Install ExtDB2
 COPY resources/extDB2.so /opt/arma3/@ExileServer/
@@ -88,8 +90,10 @@ ENV EXILE_CONFIG_DIFFICULTY="ExileRegular"
 USER root
 WORKDIR /tmp
 RUN rm -rf *
+RUN chown server:server /opt/arma3/battleye/scripts.txt
 
 USER server
 WORKDIR /opt/arma3
+
 ENTRYPOINT ["/opt/docker-entrypoint.sh", "/opt/arma3/arma3server"]
-CMD ["\"-config=@ExileServer/config.cfg\"", "\"-servermod=@ExileServer\"", "\"-mod=@Exile;expansion;heli;jets;mark\"", "-maxMem=3500", "-cpuCount=4", "-world=empty", "-autoinit"]
+CMD ["\"-config=@ExileServer/config.cfg\"", "\"-servermod=@ExileServer\"", "\"-mod=@Exile;expansion;heli;jets;mark\"", "-bepath=/opt/arma3/battleye", "-maxMem=3500", "-cpuCount=4", "-world=empty", "-autoinit"]
