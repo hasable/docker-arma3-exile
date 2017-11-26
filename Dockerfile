@@ -1,8 +1,11 @@
-FROM hasable/a3-server:1.76.141764
+FROM hasable/a3-server:1.76.143187
 LABEL maintainer='hasable'
 
+# Server user
+ARG USER_NAME=steamu
+
 USER root
-RUN apt-get -y install libtbb2:i386 unzip aria2
+RUN apt-get -y install libtbb2:i386 unzip
 
 # CONFD
 # confd allows to modify config files according to different data sources, including env vars.
@@ -29,7 +32,7 @@ WORKDIR /usr/local/bin
 RUN ln -s /opt/confd/bin/confd . \
 	&& ln -s /opt/check-urls/bin/check-urls .
 
-USER server
+USER ${USER_NAME}
 
 # EXILE
 # Download and install Exile client
@@ -81,19 +84,26 @@ ENV EXILE_CONFIG_HOSTNAME="Exile Vanilla Server"
 ENV EXILE_CONFIG_PASSWORD=""
 ENV EXILE_CONFIG_PASSWORD_ADMIN="P@ssw0rd"
 ENV EXILE_CONFIG_PASSWORD_COMMAND="P@ssw0rd"
+ENV EXILE_CONFIG_PASSWORD_RCON="P@ssw0rd"
 ENV EXILE_CONFIG_MAXPLAYERS=12
 ENV EXILE_CONFIG_VON=0
-ENV EXILE_CONFIG_MOTD="{\"Welcome to Arma 3 Exile Mod, packed by hasable with Docker!\", \"This server is for test only, you should customize it\", \"Enjoy your stay!\" }"
+ENV EXILE_CONFIG_MOTD="{\"Welcome to Arma 3 Exile Mod, packed by hasable with Docker!\", \"This server is for test only, you should consider customizing it.\", \"Enjoy your stay!\" }"
 ENV EXILE_CONFIG_MISSION="Exile.Altis"
 ENV EXILE_CONFIG_DIFFICULTY="ExileRegular"
 
 USER root
 WORKDIR /tmp
 RUN rm -rf *
-RUN chown server:server /opt/arma3/battleye/scripts.txt
+RUN chown ${USER_NAME}:${USER_NAME} /opt/arma3/battleye/scripts.txt
 
-USER server
+USER ${USER_NAME}
 WORKDIR /opt/arma3
 
 ENTRYPOINT ["/opt/docker-entrypoint.sh", "/opt/arma3/arma3server"]
-CMD ["\"-config=@ExileServer/config.cfg\"", "\"-servermod=@ExileServer\"", "\"-mod=@Exile;expansion;heli;jets;mark\"", "-bepath=/opt/arma3/battleye", "-maxMem=3500", "-cpuCount=4", "-world=empty", "-autoinit"]
+CMD ["\"-config=conf/exile.cfg\"", \
+		"\"-servermod=@ExileServer\"", \
+		"\"-mod=@Exile;expansion;heli;jets;mark\"", \
+		"-bepath=/opt/arma3/battleye", \
+		"-maxMem=3500", \
+		"-world=empty", \
+		"-autoinit"]

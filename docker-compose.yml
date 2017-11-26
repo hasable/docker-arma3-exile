@@ -1,0 +1,34 @@
+version: '2'
+services:
+  arma-3-exile:
+    image: "hasable/a3-exile"
+    container_name: "arma-3-exile"
+    depends_on: 
+        - db
+    ports:
+      - "2302:2302/udp" 
+      - "2303:2303/udp" 
+      - "2304:2304/udp"
+      - "2305:2305/udp"
+      - "2306:2306/udp"
+    environment:
+      - EXILE_CONFIG_HOSTNAME=Exile DEV
+      - EXILE_DATABASE_HOST=database
+      - EXILE_DATABASE_NAME=altisdb
+      - EXILE_DATABASE_USER=altisu
+      - EXILE_DATABASE_PASS=altispw
+    volumes:
+      - /mnt/shares/logs:/opt/arma3/@ExileServer/extDB/logs/
+    links:
+        - "db:database"
+  db:
+    image: "mysql/mysql-server:5.7.19-1.1.1"
+    container_name: "arma-3-exile-database"
+    volumes:
+      - database-content:/var/lib/mysql
+      - /mnt/shares/mysql/logs:/var/log
+    command: "--sql-mode=ONLY_FULL_GROUP_BY,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
+volumes:
+    database-content:
+        external:
+            name: database

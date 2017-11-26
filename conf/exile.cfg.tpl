@@ -1,7 +1,7 @@
 hostname        					= "{{getv "/exile/config/hostname"}}";
 password         					= "{{getv "/exile/config/password"}}";
 passwordAdmin      					= "{{getv "/exile/config/password/admin"}}";
-serverCommandPassword					= "{{getv "/exile/config/password/command"}}";
+serverCommandPassword				= "{{getv "/exile/config/password/command"}}";
 logFile            					= "server.log";
 verifySignatures   					= 1; // Do NOT use verifySignatures=2! It costs too many FPS
 BattlEye            					= 1;
