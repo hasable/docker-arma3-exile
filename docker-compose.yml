@@ -4,7 +4,7 @@ services:
     image: "hasable/a3-exile"
     container_name: "arma-3-exile"
     depends_on: 
-        - db
+        - arma-3-exile-database
     ports:
       - "2302:2302/udp" 
       - "2303:2303/udp" 
@@ -20,8 +20,8 @@ services:
     volumes:
       - /mnt/shares/logs:/opt/arma3/@ExileServer/extDB/logs/
     links:
-        - "db:database"
-  db:
+        - "arma-3-exile-database:database"
+  arma-3-exile-database:
     image: "mysql/mysql-server:5.7.19-1.1.1"
     container_name: "arma-3-exile-database"
     volumes:
