@@ -1,4 +1,4 @@
-FROM hasable/a3-server:1.78
+FROM hasable/a3-server:1.80
 LABEL maintainer='hasable'
 
 # Server user
