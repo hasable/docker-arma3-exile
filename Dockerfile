@@ -1,4 +1,4 @@
-FROM hasable/a3-server:1.80
+FROM hasable/a3-server:latest
 LABEL maintainer='hasable'
 
 # Server user
@@ -61,7 +61,7 @@ RUN unzip /tmp/@ExileServer-1.0.3f.zip \
  && mv MySQL ~/exile-sql
 
 WORKDIR /tmp/Arma\ 3\ Server
-RUN mv battleye/* /opt/arma3/battleye/ \
+RUN mv battleye/* /opt/arma3/battleye/ && rm /opt/arma3/battleye/BEServer.cfg \
 	&& mv keys/* /opt/arma3/keys \
 	&& mv mpmissions/* /opt/arma3/mpmissions/ \
 	&& mv tbbmalloc.dll /opt/arma3/ \
@@ -102,8 +102,7 @@ WORKDIR /opt/arma3
 ENTRYPOINT ["/opt/docker-entrypoint.sh", "/opt/arma3/arma3server"]
 CMD ["\"-config=conf/exile.cfg\"", \
 		"\"-servermod=@ExileServer\"", \
-		"\"-mod=@Exile;expansion;heli;jets;mark\"", \
+		"\"-mod=@Exile\"", \
 		"-bepath=/opt/arma3/battleye", \
-		"-maxMem=3500", \
 		"-world=empty", \
 		"-autoinit"]

@@ -1,2 +1,2 @@
 RConPassword {{getv "/exile/config/password/rcon"}}
-RConPort 2306
+RConPort 2309

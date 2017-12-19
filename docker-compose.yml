@@ -11,6 +11,7 @@ services:
       - "2304:2304/udp"
       - "2305:2305/udp"
       - "2306:2306/udp"
+      - "2309:2309/udp"
     environment:
       - EXILE_CONFIG_HOSTNAME=Exile DEV
       - EXILE_DATABASE_HOST=database
