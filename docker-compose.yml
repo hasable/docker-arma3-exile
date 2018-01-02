@@ -1,7 +1,7 @@
 version: '2'
 services:
   arma-3-exile:
-    image: "hasable/a3-exile"
+    image: "hasable/arma3-exile"
     container_name: "arma-3-exile"
     depends_on: 
         - arma-3-exile-database

@@ -55,22 +55,15 @@ https://jakah.nl/Exile/ >> /tmp/url.txt \
 	&& wget -i /tmp/url.txt -O @Exile-1.0.3.zip \
 	&& unzip @Exile-1.0.3.zip -d /opt/arma3
 
+##########################################################################################################
+	
+ARG USER_UID=60000
+
+##########################################################################################################
+	
 # Install Exile server
-COPY resources/@ExileServer-1.0.3f.zip .
-RUN unzip /tmp/@ExileServer-1.0.3f.zip \
- && mv MySQL ~/exile-sql
-
-WORKDIR /tmp/Arma\ 3\ Server
-RUN mv battleye/* /opt/arma3/battleye/ && rm /opt/arma3/battleye/BEServer.cfg \
-	&& mv keys/* /opt/arma3/keys \
-	&& mv mpmissions/* /opt/arma3/mpmissions/ \
-	&& mv tbbmalloc.dll /opt/arma3/ \
-	&& mv @ExileServer /opt/arma3
-# Update battleye scripts
-COPY conf/scripts.txt /opt/arma3/battleye
-
-# Install ExtDB2
-COPY resources/extDB2.so /opt/arma3/@ExileServer/
+WORKDIR /opt/arma3
+COPY --chown=60000 sources ./
 
 # MySQL default value
 ENV EXILE_DATABASE_HOST=mysql
@@ -82,19 +75,14 @@ ENV EXILE_DATABASE_PORT=3306
 # Exile default value
 ENV EXILE_CONFIG_HOSTNAME="Exile Vanilla Server"
 ENV EXILE_CONFIG_PASSWORD=""
-ENV EXILE_CONFIG_PASSWORD_ADMIN="P@ssw0rd"
-ENV EXILE_CONFIG_PASSWORD_COMMAND="P@ssw0rd"
-ENV EXILE_CONFIG_PASSWORD_RCON="P@ssw0rd"
+ENV EXILE_CONFIG_PASSWORD_ADMIN="password"
+ENV EXILE_CONFIG_PASSWORD_COMMAND="password"
+ENV EXILE_CONFIG_PASSWORD_RCON="password"
 ENV EXILE_CONFIG_MAXPLAYERS=12
 ENV EXILE_CONFIG_VON=0
 ENV EXILE_CONFIG_MOTD="{\"Welcome to Arma 3 Exile Mod, packed by hasable with Docker!\", \"This server is for test only, you should consider customizing it.\", \"Enjoy your stay!\" }"
 ENV EXILE_CONFIG_MISSION="Exile.Altis"
 ENV EXILE_CONFIG_DIFFICULTY="ExileRegular"
-
-USER root
-WORKDIR /tmp
-RUN rm -rf *
-RUN chown ${USER_NAME}:${USER_NAME} /opt/arma3/battleye/scripts.txt
 
 USER ${USER_NAME}
 WORKDIR /opt/arma3
@@ -103,6 +91,6 @@ ENTRYPOINT ["/opt/docker-entrypoint.sh", "/opt/arma3/arma3server"]
 CMD ["\"-config=conf/exile.cfg\"", \
 		"\"-servermod=@ExileServer\"", \
 		"\"-mod=@Exile\"", \
-		"-bepath=/opt/arma3/battleye", \
 		"-world=empty", \
 		"-autoinit"]
+
