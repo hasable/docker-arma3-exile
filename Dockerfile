@@ -3,68 +3,52 @@ LABEL maintainer='hasable'
 
 # Server user
 ARG USER_NAME=steamu
+ARG USER_UID=60000
 
 USER root
-RUN apt-get -y install libtbb2:i386 unzip
+RUN apt-get update \
+	&& apt-get -y  install  curl libtbb2:i386 liblzo2-2 libvorbis0a libvorbisfile3 libvorbisenc2 libogg0 rename unzip \
+	&& apt-get clean
 
-# CONFD
+# Install stuff	
+COPY sbin /usr/local/sbin
+WORKDIR /usr/local/sbin
+RUN chmod 500 * \
+	&& install-confd \
+	&& install-depbo-tools
+
 # confd allows to modify config files according to different data sources, including env vars.
-WORKDIR /opt/confd/bin
-RUN wget https://github.com/kelseyhightower/confd/releases/download/v0.13.0/confd-0.13.0-linux-amd64 \
-	&& chmod 755 confd-0.13.0-linux-amd64 \
-	&& ln -s confd-0.13.0-linux-amd64 confd \
-	&& mkdir -p /etc/confd/conf.d \
-	&& mkdir -p /etc/confd/templates
-
 COPY conf/*.toml /etc/confd/conf.d/
 COPY conf/*.tpl /etc/confd/templates/
 
-WORKDIR /opt/check-urls/bin
-COPY bin/check-urls.sh .
-RUN chmod +x check-urls.sh \
-	&& ln -s check-urls.sh check-urls
+# Provides commands & entrypoint
+COPY bin /usr/local/bin
+RUN chmod +x /usr/local/bin/*
 
-WORKDIR /opt
-COPY bin/docker-entrypoint.sh /opt
-RUN chmod +x /opt/docker-entrypoint.sh
-
-WORKDIR /usr/local/bin
-RUN ln -s /opt/confd/bin/confd . \
-	&& ln -s /opt/check-urls/bin/check-urls .
-
-USER ${USER_NAME}
+COPY keys /opt/arma3/keys
+COPY resources /home/steamu/resources
+RUN chown -R ${USER_UID}:${USER_UID} /opt/arma3/keys /home/steamu/resources \
+	&& chmod -R 755 /opt/arma3/keys /home/steamu/resources
 
 # EXILE
-# Download and install Exile client
+# Download and install Exile Client mod
+USER ${USER_NAME}
+RUN install-exile
+
 WORKDIR /tmp
-RUN check-urls http://files.theforsakensurvivors.co.uk/@Exile-1.0.3.zip \
-http://212.47.235.135/@Exile.zip \
-http://178.62.19.139/@Exile.zip \
-http://198.199.85.30/@Exile.zip \
-http://capwell.uk/exile-mirror/@Exile.zip \
-http://159.203.18.3/@Exile.zip \
-http://178.62.19.139/@Exile.zip \
-http://198.199.85.30/@Exile.zip \
-http://bravofoxtrotcompany.com/exile/@Exile-1.0.3.zip \
-https://cdn.whocaresabout.de/exile/@Exile-1.0.3.zip \
-http://www.friendlyplayershooting.com/exilemod/103/@Exile.zip \
-https://dl.hunters-tavern.de/exilemod/client/@Exile-1.0.3.zip \
-https://exilecity.com/exile/@Exile1.0.3.zip \
-https://jakah.nl/Exile/ >> /tmp/url.txt \
-  && echo "Getting Exile client from $(cat /tmp/url.txt)" \
-	&& wget -i /tmp/url.txt -O @Exile-1.0.3.zip \
-	&& unzip @Exile-1.0.3.zip -d /opt/arma3
-
-##########################################################################################################
-	
-ARG USER_UID=60000
-
-##########################################################################################################
-	
-# Install Exile server
-WORKDIR /opt/arma3
-COPY --chown=60000 sources ./
-
+RUN install-exile-server \
+	&& install-admintoolkit \
+	&& install-exad \
+	&& install-advanced-towing \ 
+	&& install-advanced-rappelling \
+	&& install-advanced-urban-rappelling \
+	&& install-cba \
+	&& install-custom-loadout \
+	&& install-custom-restart \
+	&& install-custom-repair \
+	&& install-enigma-revive \
+	&& install-igiload 
+		
 # MySQL default value
 ENV EXILE_DATABASE_HOST=mysql
 ENV EXILE_DATABASE_NAME=exile
@@ -84,13 +68,22 @@ ENV EXILE_CONFIG_MOTD="{\"Welcome to Arma 3 Exile Mod, packed by hasable with Do
 ENV EXILE_CONFIG_MISSION="Exile.Altis"
 ENV EXILE_CONFIG_DIFFICULTY="ExileRegular"
 
-USER ${USER_NAME}
-WORKDIR /opt/arma3
+# interval de redemarrage, en seconde
+ENV EXILE_CONFIG_RESTART_CYCLE=14400
+# heure de demarrage du cycle, en seconde par rapport a minuit
+ENV EXILE_CONFIG_RESTART_START=0		
+# ne pas redemarrer si le serveur a demarre depuis moins de Xs
+ENV EXILE_CONFIG_RESTART_GRACE_TIME=900
 
-ENTRYPOINT ["/opt/docker-entrypoint.sh", "/opt/arma3/arma3server"]
+WORKDIR /opt/arma3
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint", "/opt/arma3/arma3server"]
 CMD ["\"-config=conf/exile.cfg\"", \
-		"\"-servermod=@ExileServer\"", \
-		"\"-mod=@Exile\"", \
+		"\"-servermod=@ExileServer;@AdminToolkitServer;@AdvancedRappelling;@AdvancedUrbanRappelling;@Enigma;@ExAd\"", \
+		"\"-mod=@Exile;@CBA_A3\"", \
 		"-world=empty", \
 		"-autoinit"]
+		
 
+#USER root
+#ENTRYPOINT [""]
+#CMD [""]		

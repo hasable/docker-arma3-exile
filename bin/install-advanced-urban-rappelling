@@ -1,0 +1,35 @@
+#!/bin/bash
+set -e
+
+. /usr/local/bin/common
+
+echo "Installing advanced-rappelling-v1.3"
+pushd /tmp > /dev/null
+curl -Lj https://github.com/sethduda/AdvancedUrbanRappelling/archive/1.0.zip -o AdvancedUrbanRappelling-1.0.zip
+unzip AdvancedUrbanRappelling-1.0.zip
+
+# customize file
+pushd AdvancedUrbanRappelling-1.0/addons
+mv AUR_AdvancedUrbanRappelling aur_advancedurbanrappelling
+sed -i 's#^\(\s*\#include\s"cfgAnimations\.hpp".*\)$#//\1#' aur_advancedurbanrappelling/config.cpp
+makepbo -N aur_advancedurbanrappelling
+popd
+
+# install
+mkdir -p /opt/arma3/@AdvancedUrbanRappelling/addons
+mv AdvancedUrbanRappelling-1.0/addons/aur_advancedurbanrappelling.pbo /opt/arma3/@AdvancedUrbanRappelling/addons
+mv AdvancedUrbanRappelling-1.0/keys/AdvancedUrbanRappelling.bikey /opt/arma3/keys
+
+pushd /home/steamu/sources/mpmissions
+for mission in *;
+do
+	updateCfgRemoteExec ${mission}/description.ext "// AdvancedUrbanRappelling"
+	updateCfgRemoteExec ${mission}/description.ext "class AUR_Hint { allowedTargets=1; };" 
+	updateCfgRemoteExec ${mission}/description.ext "class AUR_Hide_Object_Global { allowedTargets=2; };"
+	updateCfgRemoteExec ${mission}/description.ext "class AUR_Enable_Rappelling_Animation_Global { allowedTargets=2; };"
+	updateCfgRemoteExec ${mission}/description.ext "class AUR_Play_Rappelling_Sounds_Global { allowedTargets=2; };"
+done
+popd
+
+# remove file 
+rm -rf  AdvancedUrbanRappelling*

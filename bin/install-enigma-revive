@@ -1,0 +1,43 @@
+#!/bin/bash
+set -ex
+
+. /usr/local/bin/common
+
+pushd /tmp
+echo "Installing Enigma Revive"
+
+curl -Lj https://github.com/3N1GMA-HPY/Enigma_Exile_Revive/archive/master.zip -o enigma-revive.zip
+unzip enigma-revive.zip && rm enigma-revive.zip
+
+erp=$(pwd)/Enigma_Exile_Revive-master
+mkdir -p /opt/arma3/@Enigma/addons 
+mv ${erp}/@Enigma/addons/*.pbo /opt/arma3/@Enigma/addons
+
+pushd /home/steamu/sources/mpmissions
+for mission in *;
+do
+	cp -R "${erp}/Exile.Altis/Custom/EnigmaRevive" ${mission}/Custom
+
+	echo "//Revive" >> ${mission}/init.sqf
+	echo "[] execVM \"Custom\EnigmaRevive\init.sqf\";" >> ${mission}/init.sqf
+		
+	updateCfgExileCustomCode ${mission}/config.cpp "// Enigma"
+	updateCfgExileCustomCode ${mission}/config.cpp "ExileClient_object_player_death_startBleedingOut = \"Custom\EnigmaRevive\ExileClient_object_player_death_startBleedingOut.sqf\";"
+	updateCfgExileCustomCode ${mission}/config.cpp "ExileClient_object_player_event_onInventoryOpened = \"Custom\EnigmaRevive\ExileClient_object_player_event_onInventoryOpened.sqf\";" 
+	
+	updateInteractXAction Player ${mission}/config.cpp "class Revive: ExileAbstractAction"
+	updateInteractXAction Player ${mission}/config.cpp "{"
+	updateInteractXAction Player ${mission}/config.cpp "	title = \"Perform CPR\";"
+	updateInteractXAction Player ${mission}/config.cpp "	condition = \"(!(alive ExileClientInteractionObject) && (ExileClientInteractionObject getVariable ['EnigmaRevivePermitted', true]) && (magazines player find 'Exile_Item_Defibrillator' >= 0))\";"
+	updateInteractXAction Player ${mission}/config.cpp "	action = \"_this spawn Enigma_RevivePlyr\";"
+	updateInteractXAction Player ${mission}/config.cpp "};"
+	
+	# Enable defibrillator
+	sed -i 's#^\(\s*"Exile_Item_Heatpack"\)#\1,#' ${mission}/config.cpp
+	sed -i 's#^\(\s*\)//\(\s*\(class.*\|"\)Exile_Item_Defibrillator\)#\1\2#' ${mission}/config.cpp
+	
+done
+popd
+
+rm -rf ExileMod-Advanced-Repair-master
+popd

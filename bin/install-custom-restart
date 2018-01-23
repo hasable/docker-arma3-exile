@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+. /usr/local/bin/common
+
+echo "Installing custom restart"
+
+pushd /home/steamu/sources/mpmissions
+for mission in *;
+do
+	echo ${mission}
+	mkdir -p ${mission}/Custom/Restart
+	cp /home/steamu/resources/ExileServer_system_rcon_thread_check.sqf  ${mission}/Custom/Restart/
+	updateCfgExileCustomCode ${mission}/config.cpp "// Custom restart"
+	updateCfgExileCustomCode ${mission}/config.cpp "ExileServer_system_rcon_thread_check = \"Custom\Restart\ExileServer_system_rcon_thread_check.sqf\";"
+done
+popd

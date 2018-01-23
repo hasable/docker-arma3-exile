@@ -1,1 +1,0 @@
-ALTER TABLE `player` CHANGE `hitpoints` `hitpoints` varchar(1024) NOT NULL DEFAULT '[]'

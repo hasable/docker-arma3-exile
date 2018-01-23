@@ -1,0 +1,25 @@
+#!/bin/bash
+set -e
+
+. /usr/local/bin/common
+
+echo "Installing Custom Loadout"
+
+curl -Lj  https://github.com/kuplion/Custom-Loadout/archive/master.zip -o custom-loadout.zip
+unzip custom-loadout.zip && rm custom-loadout.zip
+clp=$(pwd)/Custom-Loadout-master
+
+pushd /home/steamu/sources/mpmissions
+
+for mission in *;
+do
+	mkdir -p ${mission}/Custom/Loadout
+	cp ${clp}/*.sqf  ${mission}/Custom/Loadout
+	
+	updateCfgExileCustomCode ${mission}/config.cpp "// Custom Loadout"
+	updateCfgExileCustomCode ${mission}/config.cpp "ExileServer_object_player_createBambi = \"Custom\Loadout\ExileServer_object_player_createBambi.sqf\";"
+    updateCfgExileCustomCode ${mission}/config.cpp "ExileServer_object_player_network_createPlayerRequest = \"Custom\Loadout\ExileServer_object_player_network_createPlayerRequest.sqf\";"
+done
+
+popd
+rm -rf Custom-Loadout-master

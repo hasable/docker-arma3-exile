@@ -1,2 +1,0 @@
-//new
-7 "" !="exilexm8isonline" !="bis_fnc_selectrespawntemplate_respawned" !="exilecamerainuse" !="bis_accesscounter" !="isrunning" !="saved3deninventory"

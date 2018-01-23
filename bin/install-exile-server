@@ -1,0 +1,40 @@
+#!/bin/bash
+set -ex
+echo "Installing exile-server-1.0.3f"
+pushd /tmp > /dev/null
+curl -LOj http://www.exilemod.com/download-all-the-files/@ExileServer-1.0.3f.zip
+unzip @ExileServer-1.0.3f.zip 
+pushd Arma\ 3\ Server/
+cp -R @ExileServer /opt/arma3
+rm battleye/BEServer.cfg && mv battleye/* /opt/arma3/battleye
+mv keys/* /opt/arma3/keys
+mv tbbmalloc.dll /opt/arma3
+
+# Save SQL file to export it later
+mkdir -p /home/steamu/sql && mv /tmp/MySQL/exile.sql /home/steamu/sql/
+
+# Save config file in order to dynamically modify it
+mkdir -p /home/steamu/sources/@ExileServer/addons
+pushd @ExileServer/addons
+extractpbo exile_server_config.pbo
+mv exile_server_config/exile_server_config /home/steamu/sources/@ExileServer/addons
+popd
+
+pushd mpmissions
+mkdir -p /home/steamu/sources/mpmissions
+for i in *.pbo; do 
+	extractpbo $i; 
+	mission=${i%.pbo}
+	# add a marker in config.cpp file, will be usefull later
+	perl -i -p0e 's#(CfgExileCustomCode.*?/\*.*?\*/)(.*?\};)#\1\n\n        //__CUSTOM_CODE_MARKER__//\2#s' ${mission}/${mission}/config.cpp
+	
+	# remove tow tractor, as it shows an error message at startup
+	# and is useless
+	sed -i 's#^\(\s*\)\(.*Exile_Car_TowTractor_White.*\)$#\1//\2#'  ${mission}/${mission}/config.cpp
+	
+	mv ${mission}/* /home/steamu/sources/mpmissions; 
+done
+popd
+popd
+rm -rf @ExileServer-1.0.3f.zip Arma\ 3\ Server MySQL
+popd

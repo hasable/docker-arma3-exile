@@ -1,0 +1,147 @@
+#!/bin/bash
+set -e
+
+. /usr/local/bin/common
+
+###
+# Reminder: 
+# grep 
+#  -P : use Perl syntax
+#  -o : output only matching text
+#  -z : treat file as a single line
+###
+
+echo "Installing ExAd.0.10.0"
+# get admintoolkit
+curl -Lj https://github.com/Bjanski/ExAd/archive/v0.10.0.tar.gz -o ExAd-0.10.0.tar.gz
+tar xvfz ExAd-0.10.0.tar.gz
+pushd ExAd-0.10.0
+
+# Deal with server side PBO
+mkdir -p /opt/arma3/@ExAd/addons
+pushd @ExileServer/addons
+for pbo in *; 
+do
+	makepbo -N ${pbo} 
+	mv ${pbo}.pbo /opt/arma3/@ExAd/addons/
+done
+popd
+
+# Then deal with sql (server side)
+P_BLANK='^[[:space:]]*$'
+P_REPLACE='^;1.*$'
+P_APPEND='^;2.*$'
+
+P_SECTION='^\[.*\]'
+P_FROM=';[[:space:]]*SQL1_1\s.*'
+P_TO='[[:space:]]*SQL1_1\s.*'
+
+pushd @ExileServer/extDB/sql_custom_v2
+while read -r line; do 
+	[[ ${line} =~ ${P_REPLACE} ]] && phase=${P_REPLACE}
+	
+	if [ "${phase}" == "${P_REPLACE}" ]; then
+		# Get 3 lines needed to replace in target file
+		[[ ${line} =~ ${P_SECTION} ]] && section=${line}
+		[[ ${line} =~ ${P_FROM}    ]] && from=${line}	
+		[[ ${line} =~ ${P_TO}      ]] && to=${line}	
+	
+		if [[ ${line} =~ ${P_BLANK} ]]; then
+			# blank line => new section, so let's do replacement based on the previous section data
+			if [ ! -z "${section}" ] && [ ! -z "${from}" ] && [ ! -z "${to}" ]; then
+				replaceSql /opt/arma3/@ExileServer/extDB/sql_custom_v2/exile.ini "Modified for ExAd" ${section} "${to}"
+			fi
+			# reset data for next section
+			section=
+			from=
+			to=
+		fi
+	fi
+	
+	if [ "${phase}" == "${P_APPEND}" ]; then echo "${line}" >> /opt/arma3/@ExileServer/extDB/sql_custom_v2/exile.ini; fi
+	
+	# check at the end of the loop in order to avoid writing current line (;2 ...) in the target file
+	[[ ${line} =~ ${P_APPEND} ]] && phase=${P_APPEND} && echo -e "\n\n" >> /opt/arma3/@ExileServer/extDB/sql_custom_v2/exile.ini
+done < exile.ini
+popd
+
+# Prepare mission configuration
+exad_config_file=$(pwd)/mpmissions/Exile.Altis/config.cpp
+exad_description_file=$(pwd)/mpmissions/Exile.Altis/description.ext
+exad_mission_dir=$(pwd)/mpmissions/Exile.Altis
+
+# Not enabling everything by default
+sed -i 's#^\(\s*\)//\(\#include\s"Core.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
+sed -i 's#^\(\s*\)//\(\#include\s"Hacking.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
+sed -i 's#^\(\s*\)//\(\#include\s"Grinding.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
+sed -i 's#^\(\s*\)//\(\#include\s"HaloParachute.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
+sed -i 's#^\(\s*\)//\(\#include\s"XM8.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
+
+sed -i 's#^\(\s*\)//\(\#include\s.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/RscTitles.cpp
+sed -i 's#^\(\s*\)//\(\#include\s"StatsBar.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
+
+
+# Virtual garage configuration
+echo "ALTER TABLE \`vehicle\` ADD \`territory_id\` INT(11) UNSIGNED NULL DEFAULT NULL;" >> /home/steamu/sql/exile.sql
+echo "ALTER TABLE \`vehicle\` ADD CONSTRAINT \`vehicle_ibfk_2\` FOREIGN KEY (\`territory_id\`) REFERENCES \`territory\`(\`id\`) ON DELETE CASCADE ON UPDATE RESTRICT;" >> /home/steamu/sql/exile.sql
+
+# Customize time configuration
+sed -i 's#^\(ExAd_SB_Timer\s*=\)[0-9]*\(;.*Restart time measured in \)hours\(.*\)$#\1 10800\2seconds\3#' ${exad_mission_dir}/ExAdClient/StatsBar/customize.sqf
+sed -i 's#^\(\s*_hours\s*=\).*;\(\s*\)$#\1 floor ((ExAd_SB_Timer -_time) / 3600);\2#' ${exad_mission_dir}/ExAdClient/StatsBar/Functions/fn_getTimerStr.sqf
+sed -i 's#^\(\s*_minutes\s*=\).*;\(\s*\)$#\1 floor (((ExAd_SB_Timer -_time) % 3600) / 60);\2#' ${exad_mission_dir}/ExAdClient/StatsBar/Functions/fn_getTimerStr.sqf
+
+line=$(sed -n '/\s*class\s\+CfgRemoteExec/=' ${exad_description_file})
+line=$(( $line - 1 ))
+exad_description=$(sed -n 1,${line}p  ${exad_description_file})
+exad_xm8_cfg=$(grep -Pzo '(?s)class\s+CfgXM8\s+{.*?(class\s+[A-z_]+\s+{.*?};\s*)+\s*}\s*;' ${exad_config_file})
+exad_custom_code=$(grep -Pzo '(?s)class\s+CfgExileCustomCode\s+{.*?};' ${exad_config_file})
+exad_interactions_menus=$(grep -Pzo '(?s)class\s+CfgInteractionMenus\s+{.*?(class\s+[A-z_]+\s+{.*?(class\s+Actions\s+{.*?(class\s+[A-z_]+\s*:\s*[A-z_]+\s*{.*?}\s*;\s*)*};\s*)*}\s*;\s*)*}\s*;' ${exad_config_file} )
+
+# Finally update mission files
+pushd /home/steamu/sources/mpmissions
+for mission in *;
+do
+	# First deal with description
+	echo "// Exad Configuration" >> ${mission}/description.ext
+	echo "${exad_description}" 	 >> ${mission}/description.ext
+	
+	updateCfgRemoteExec ${mission}/description.ext "// ExAd"
+	grep ExAdServer* ${exad_description_file} | \
+		while read -r line; do 
+			updateCfgRemoteExec ${mission}/description.ext "${line}"
+		done
+	
+	# Then deal with configuration
+	echo -e "\n" 			>> ${mission}/config.cpp
+	echo "${exad_xm8_cfg}" 	>> ${mission}/config.cpp
+	
+	updateCfgExileCustomCode ${mission}/config.cpp "// ExAd"
+	echo "${exad_custom_code}" | grep -Po '(?s)^\s+Exile.*;\s*$' | \
+		while read -r line; do
+			updateCfgExileCustomCode ${mission}/config.cpp "${line}"
+		done
+	
+	# Then deal with action (this one is touchy...)
+	
+	# 1) get CfgInteractionMenus{...}; from the source file 
+	# 2) extract the required part (eg Construction{...};)
+	# 3) extract actions from the required part
+	
+	for part in Car Air Safe Laptop SupplyBox Drawbridge Construction Container Flag Boat Bikes Player Animal; 
+	do
+		echo "${exad_interactions_menus}"  | \
+			grep -Pzo "(?sx)(class\s+${part}+\s+\{.*?class\s+Actions\s+\{([^\}]*?class.*?\{.*?\};)*)(\s*};\s*};)"  | \
+			grep -Pzo "(?s)(class\s+\S+\s*:\s*ExileAbstractAction\s*\{.*?\}\s*;\s*)*" | \
+			while read -r line; do
+				updateInteractXAction ${part} ${mission}/config.cpp "${line}"
+			done
+	done
+	
+	# Finally copy client files
+	cp -r ${exad_mission_dir}/ExAdClient ${mission}	
+	cp ${exad_mission_dir}/stringtable.xml ${mission}/stringtable.xml
+	
+done
+popd
+popd
+rm -rf ExAd*

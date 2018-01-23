@@ -1,2 +1,0 @@
-//new
-7 "" !="true" !="vehicle this land 'LAND'" !="exileserver_system_network_dispatchincomingmessage.*" !="bis_fnc_effectkilledairdestruction.*"

@@ -1,0 +1,72 @@
+#!/bin/bash
+set -e
+
+. /usr/local/bin/common
+
+echo "Installing admintoolkitv2.2.2"
+# get admintoolkit
+curl -Lj https://github.com/ole1986/a3-admintoolkit/archive/2.2.2.zip -o a3-admintoolkit-2.2.2.zip
+unzip a3-admintoolkit-2.2.2.zip
+pushd a3-admintoolkit-2.2.2
+
+# install server part
+mkdir -p /opt/arma3/@AdminToolkitServer/addons
+mv @AdminToolkitServer/addons/admintoolkit_server.pbo /opt/arma3/@AdminToolkitServer/addons
+
+# keep configuration part in sources, in order to use it at server start
+mkdir -p /home/steamu/sources/@AdminToolkitServer/addons
+mv source/admintoolkit_servercfg /home/steamu/sources/\@AdminToolkitServer/addons/
+
+# deploy key
+mv admintoolkit.bikey /opt/arma3/keys
+
+# deal with mission files
+atk=$(pwd)/source/mission_file/atk
+rm ${atk}/*.md
+
+pushd /home/steamu/sources/mpmissions
+for mission in *;
+do
+	cp -r ${atk} ${mission}
+	updateCfgRemoteExec ${mission}/description.ext "// AdminToolKit"
+	updateCfgRemoteExec ${mission}/description.ext "class AdminToolkit_network_receiveRequest { allowedTargets = 2; };"
+	cat << EOF >> ${mission}/config.cpp
+
+
+class CfgAdminToolkitCustomMod {
+/* Exclude some main menu items
+ * To only show the menus loaded from an extension, use:
+ * 
+ * ExcludeMenu[] = {"Players", "Vehicles", "Weapons" , "Other"};
+ */
+ExcludeMenu[] = {};
+
+/* Load an additional sqf file as MOD */
+Extensions[] = {
+	/**
+	* Usage: {"<Your Mod Title>", "<YourModFile>"}
+	* add a new menu entry called My Extension into main menu */
+	{"Exile Mod","ExileMod"},
+	{"Stoll Furniture","Furniture"},
+	{"Vanilla AI","VanillaAI"}
+};
+
+/* 4 Quick buttons allowing to add any action you want - See example below*/
+QuickButtons[] = {
+	/* send a chat message to selected player containing 'Test 123' */
+	{"Chat", "['message', [netid AdminToolkit_Player, AdminToolkit_Params]] call AdminToolkit_doAction"},
+	/* send a message to everyone using the parameter text field */
+	{"Msg To All", "['messageall', AdminToolkit_Params] call AdminToolkit_doAction"},
+	/* Quickly get an Offroad */
+	{"Offroad", "['getvehicle', 'B_G_Offroad_01_armed_F'] call AdminToolkit_doAction"},
+	/* Quickly get a Helicopter */
+	{"Heli", "['getvehicle', 'B_Heli_Light_01_F'] call AdminToolkit_doAction"}
+};
+};	
+
+EOF
+done
+popd
+popd
+rm -rf a3-admintoolkit-2.2.2*
+

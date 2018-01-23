@@ -1,0 +1,63 @@
+#!/bin/bash
+set -ex
+
+. /usr/local/bin/common
+
+echo "Installing Custom Repair"
+
+curl -Lj https://github.com/Bones50/ExileMod-Advanced-Repair/archive/master.zip -o advanced-repair.zip
+unzip advanced-repair.zip && rm advanced-repair.zip
+
+pushd ExileMod-Advanced-Repair-master/Advanced\ Repair
+mv custom Custom
+mv Custom/advancedRepair Custom/Repair
+sed -i 's#advancedRepair#Repair#' Custom/Repair/*.sqf
+popd 
+
+clp=$(pwd)/ExileMod-Advanced-Repair-master/Advanced\ Repair/Custom
+
+
+pushd /home/steamu/sources/mpmissions
+for mission in *;
+do
+	cp -R "${clp}/Repair" ${mission}/Custom
+
+	echo "//Advanced repair" >> ${mission}/initPlayerLocal.sqf
+	echo "Bones_fnc_salvageAndRepairMenuHelo = compileFinal preprocessFileLineNumbers \"Custom\Repair\Bones_fnc_salvageAndRepairMenuHelo.sqf\";" >> ${mission}/initPlayerLocal.sqf
+	echo "Bones_fnc_salvageAndRepairMenuCar = compileFinal preprocessFileLineNumbers \"Custom\Repair\Bones_fnc_salvageAndRepairMenuCar.sqf\";" >> ${mission}/initPlayerLocal.sqf
+	
+	sed -i 's#^\(\s*\)\(false\)\(,\s*//\s*Commanding\smenu\)$#\1true\3#' ${mission}/description.ext
+	
+	# configure Car repair action
+	set +e
+	read -d '' car << EOF
+
+			// Custom repair
+			class Repair: ExileAbstractAction
+			{
+				title = "Repair/Salvage";
+				condition = "true";
+				action = "_this call Bones_fnc_salvageAndRepairMenuCar";
+			};
+EOF
+	set -e
+	perl -i -p0e "s#(class\s+CfgInteractionMenus.*?\{.*?class\s+Car.*?\{.*?class\s+Actions.*?\{.*?)class\s+Repair.\s+ExileAbstractAction.*?\{.*?\}\s*;#\1${car}#s" ${mission}/config.cpp
+	
+	# configure Air repair action
+	set +e
+	read -d '' air << EOF
+
+			// Custom repair
+			class Repair: ExileAbstractAction
+			{
+				title = "Repair/Salvage";
+				condition = "true";
+				action = "_this call Bones_fnc_salvageAndRepairMenuCar";
+			};
+EOF
+	set -e
+	perl -i -p0e "s#(class\s+CfgInteractionMenus.*?\{.*?class\s+Air.*?\{.*?class\s+Actions.*?\{.*?)class\s+Repair.\s+ExileAbstractAction.*?\{.*?\}\s*;#\1${air}#s" ${mission}/config.cpp
+done
+popd
+
+rm -rf ExileMod-Advanced-Repair-master

@@ -1,0 +1,34 @@
+#!/bin/bash
+set -e
+
+. /usr/local/bin/common
+
+echo "Installing advanced-towing-v1.5"
+pushd /tmp
+curl -Lj https://github.com/sethduda/AdvancedTowing/releases/download/1.5/AdvancedTowing.zip -o AdvancedTowing-1.5.zip
+unzip AdvancedTowing-1.5.zip
+
+# install
+mkdir -p /opt/arma3/@AdvancedTowing/addons
+mv @AdvancedTowing/addons/SA_AdvancedTowing.pbo /opt/arma3/@AdvancedTowing/addons/sa_advancedtowing.pbo
+mv @AdvancedTowing/keys/AdvancedTowing.bikey /opt/arma3/keys
+
+pushd /home/steamu/sources/mpmissions
+for mission in *;
+do
+	updateCfgRemoteExec ${mission}/description.ext "// AdvancedTowing"
+	updateCfgRemoteExec ${mission}/description.ext "class SA_Simulate_Towing	{ allowedTargets=0; };" 
+	updateCfgRemoteExec ${mission}/description.ext "class SA_Attach_Tow_Ropes	{ allowedTargets=0; };" 
+	updateCfgRemoteExec ${mission}/description.ext "class SA_Take_Tow_Ropes		{ allowedTargets=0; };"
+	updateCfgRemoteExec ${mission}/description.ext "class SA_Put_Away_Tow_Ropes	{ allowedTargets=0; };"
+	updateCfgRemoteExec ${mission}/description.ext "class SA_Pickup_Tow_Ropes	{ allowedTargets=0; };" 
+	updateCfgRemoteExec ${mission}/description.ext "class SA_Drop_Tow_Ropes		{ allowedTargets=0; };" 
+	updateCfgRemoteExec ${mission}/description.ext "class SA_Set_Owner			{ allowedTargets=2; };" 
+	updateCfgRemoteExec ${mission}/description.ext "class SA_Hint				{ allowedTargets=1; };" 
+	updateCfgRemoteExec ${mission}/description.ext "class SA_Hide_Object_Global	{ allowedTargets=2; };" 	
+done
+popd
+
+# remove file 
+rm -rf  @AdvancedTowing AdvancedTowing-1.5.zip
+popd

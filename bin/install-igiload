@@ -1,0 +1,22 @@
+#!/bin/bash
+set -e
+
+. /usr/local/bin/common
+
+echo "Installing IgiLoad"
+
+pushd /home/steamu/sources/mpmissions
+for mission in *;
+do
+	echo ${mission}
+	mkdir -p ${mission}/Custom/Restart
+	cp -R /home/steamu/resources/IgiLoad  ${mission}/
+	
+	echo "// Igiload" >> ${mission}/init.sqf
+	echo "[] execVM \"IgiLoad\IgiLoadInit.sqf\";" >> ${mission}/init.sqf
+	
+	updateCfgExileCustomCode ${mission}/config.cpp "// IgiLoad"
+	updateCfgExileCustomCode ${mission}/config.cpp "ExileClient_object_player_event_onEnterSafezon = \"Igiload\ExileClient_object_player_event_onEnterSafezone.sqf\";"
+	
+done
+popd

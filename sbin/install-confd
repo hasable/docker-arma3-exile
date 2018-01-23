@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+echo "Installing confd-0.13.0"
+{
+        mkdir -p /opt/confd/bin && pushd /opt/confd/bin
+        wget -q https://github.com/kelseyhightower/confd/releases/download/v0.13.0/confd-0.13.0-linux-amd64
+        chmod 755 confd-0.13.0-linux-amd64
+        ln -s $(pwd)/confd-0.13.0-linux-amd64 confd
+        ln -s $(pwd)/confd /usr/local/bin/confd
+        mkdir -p /etc/confd/conf.d
+        mkdir -p /etc/confd/templates
+        popd
+} > /dev/null

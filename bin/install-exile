@@ -1,0 +1,38 @@
+#!/bin/bash
+set -e
+
+function check-urls {
+	for url in "$@" 
+	do      
+		wget --timeout=2 --tries=1 --spider ${url} > /dev/null 2>&1
+		if [ $? = 0 ]
+		then
+			echo ${url} 
+			return
+		fi
+	done
+	
+	(>&2 echo "No valid RUL found to download Exile...")
+	exit 1
+} 
+
+echo "Installing exile-1.0.3"
+
+pushd /tmp
+url=$(check-urls http://files.theforsakensurvivors.co.uk/@Exile-1.0.3.zip \
+		http://212.47.235.135/@Exile.zip \
+		http://198.199.85.30/@Exile.zip \
+		http://capwell.uk/exile-mirror/@Exile.zip \
+		http://159.203.18.3/@Exile.zip \
+		http://198.199.85.30/@Exile.zip \
+		http://bravofoxtrotcompany.com/exile/@Exile-1.0.3.zip \
+		https://cdn.whocaresabout.de/exile/@Exile-1.0.3.zip \
+		http://www.friendlyplayershooting.com/exilemod/103/@Exile.zip \
+		https://dl.hunters-tavern.de/exilemod/client/@Exile-1.0.3.zip \
+		https://exilecity.com/exile/@Exile1.0.3.zip \
+		https://jakah.nl/Exile/ )
+echo "- getting Exile client from ${url}"
+curl -Lj ${url} -o exile-1.0.3.zip
+unzip exile-1.0.3.zip -d /opt/arma3
+rm -rf exile-1.0.3.zip
+popd	

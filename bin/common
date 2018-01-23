@@ -1,0 +1,74 @@
+#!/bin/bash
+
+set -e
+
+TAB="    "
+CUSTOM_CODE_MARKER="//__CUSTOM_CODE_MARKER__//"
+REMOTE_EXEC_MARKER="//__REMOTE_EXEC_MARKER__//"
+
+function initCfgExileCustomCode {
+	local file=${1}
+	shift
+	
+	# no double init allowed
+	grep ${CUSTOM_CODE_MARKER} ${file} && exit 1
+	perl -i -p0e "s#(CfgExileCustomCode.*?/\*.*?\*/)(.*?)(\};)#\1\n\n${TAB}${CUSTOM_CODE_MARKER}\n\n\3#s" ${file}
+}
+
+function updateCfgExileCustomCode {
+	local file=${1}
+	shift
+	
+	# no double init allowed
+	grep -q  ${CUSTOM_CODE_MARKER} ${file} || $(initCfgExileCustomCode ${file})
+	perl -i -p0e "s#${CUSTOM_CODE_MARKER}#${@//\\/\\\\}\n${TAB}${CUSTOM_CODE_MARKER}#s" ${file}
+}
+
+function initCfgRemoteExec {
+	local file=${1}
+	shift
+	
+	# no double init allowed
+	grep -q ${REMOTE_EXEC_MARKER} ${file} && exit 1
+	perl -i -p0e "s#(class\s+Functions.*?)(class\sExileServer_system_network_dispatchIncomingMessage\s*)(\{.*\};)(\s*\};\s*class\s+Commands)#\1\2\{ allowedTargets = 2; \};\n${@}\n${TAB}${TAB}${REMOTE_EXEC_MARKER}\4#s" ${file}
+}
+
+function updateCfgRemoteExec {
+	local file=${1}
+	shift
+	
+	grep -q ${REMOTE_EXEC_MARKER} ${file} || $(initCfgRemoteExec ${file})	
+	perl -i -p0e "s#${REMOTE_EXEC_MARKER}#${@//\\/\\\\}\n${TAB}${TAB}${REMOTE_EXEC_MARKER}#s" ${file}
+}
+
+function initInteractXAction {
+	local item=${1}
+	local file=${2}
+	local marker="//__INTERACT_ACTION_MARKER_FOR_${item}__//"
+	
+	# no double init allowed
+	grep -q ${marker} ${file} && exit 1
+	perl -i -p0e "s#(class\s+CfgInteractionMenus\s+\{.*?class\s+${item}+\s+\{.*?class\s+Actions\s+\{([^\}]*?class.*?\{.*?\};)*)(\s*};\s*};)#\1\n\n${TAB}${TAB}${TAB}${marker}\n\3#s" ${file}
+}
+
+function updateInteractXAction {
+	local item=${1}
+	local file=${2}
+	shift 2
+	local marker="//__INTERACT_ACTION_MARKER_FOR_${item}__//"
+	
+	grep -q "${marker}" ${file} || initInteractXAction ${item} ${file}
+	perl -i -p0e "s#${marker}#${@//\\/\\\\}\n${TAB}${TAB}${TAB}${marker}#s" ${file}
+}
+
+function replaceSql {
+	local file=${1}
+	local comment=${2}
+	local section=${3//$'\r'/}
+	local section="${section//[/\\[}"
+	local section="${section//]/\\]}"
+	
+	shift 3
+	
+	perl -i -p0e "s#(${section}.*?)(SQL.*?)(Number)#; ${comment}\n\1;\2${@//\\/\\\\}\n\3#s" ${file}
+}

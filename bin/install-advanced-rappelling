@@ -1,0 +1,36 @@
+#!/bin/bash
+set -e
+
+. /usr/local/bin/common
+
+echo "Installing advanced-rappelling-v1.3"
+pushd /tmp > /dev/null
+curl -Lj https://github.com/sethduda/AdvancedRappelling/archive/1.3.zip -o AdvancedRappelling-1.3.zip
+unzip AdvancedRappelling-1.3.zip
+
+# customize file
+pushd AdvancedRappelling-1.3/addons
+mv AR_AdvancedRappelling ar_advancedrappelling
+sed -i 's#^\(\s*\#include\s"cfgAnimations\.hpp".*\)$#//\1#' ar_advancedrappelling/config.cpp
+makepbo -N ar_advancedrappelling
+popd
+
+# install
+mkdir -p /opt/arma3/@AdvancedRappelling/addons
+mv AdvancedRappelling-1.3/addons/ar_advancedrappelling.pbo /opt/arma3/@AdvancedRappelling/addons
+mv AdvancedRappelling-1.3/keys/AdvancedRappelling.bikey /opt/arma3/keys
+
+pushd /home/steamu/sources/mpmissions
+for mission in *;
+do
+	updateCfgRemoteExec ${mission}/description.ext "// AdvancedRappelling"
+	updateCfgRemoteExec ${mission}/description.ext "class AR_Client_Rappel_From_Heli { allowedTargets=0; };" 
+	updateCfgRemoteExec ${mission}/description.ext "class AR_Hint { allowedTargets=1; };" 
+	updateCfgRemoteExec ${mission}/description.ext "class AR_Hide_Object_Global { allowedTargets=2; };" 
+	updateCfgRemoteExec ${mission}/description.ext "class AR_Enable_Rappelling_Animation { allowedTargets=2; };" 
+	updateCfgRemoteExec ${mission}/description.ext "class AR_Rappel_From_Heli { allowedTargets=2; };" 
+done
+popd
+
+# remove file 
+rm -rf  AdvancedRappelling*
