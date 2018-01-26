@@ -17,14 +17,6 @@ if [ ! -z "${ATK_CONFIG_MODERATOR_LIST}" ]; then
 	sed -i "s#^\(.*ModeratorList.*{\).*\(}\)#\1 \"${ATK_CONFIG_MODERATOR_LIST//,/\", \"}\" \2#"  /home/steamu/sources/\@AdminToolkitServer/addons/admintoolkit_servercfg/config.cpp
 fi
 
-if [ ! -z "${BUILD_ATK_CFG}" ]; then 
-	echo "Rebuilding AdminToolkit server configuration..."
-	pushd /home/steamu/sources/\@AdminToolkitServer/addons/
-	makepbo -N admintoolkit_servercfg
-	mv -f admintoolkit_servercfg.pbo /opt/arma3/\@AdminToolkitServer/addons/admintoolkit_servercfg.pbo
-	popd
-fi
-
 echo "Rebuilding Exile server configuration..."
 
 # calcul du decalage UTC
@@ -50,9 +42,21 @@ if [ ! -z "${EXILE_CONFIG_PASSWORD_COMMAND}" ]; then
 	sed -i "s#^\(\s*serverPassword\s*=\s*\"\).*\(\".*$\)#\1${EXILE_CONFIG_PASSWORD_COMMAND}\2#"  /home/steamu/sources/\@ExileServer/addons/exile_server_config/config.cpp
 fi
 
-pushd /home/steamu/sources/\@ExileServer/addons/		
-makepbo -N exile_server_config
-mv -f exile_server_config.pbo /opt/arma3/\@ExileServer/addons/exile_server_config.pbo
+#Update mods
+pushd /home/steamu/sources/	
+for mod in @*; do
+	echo "Rebuilding ${mod}..."
+	pushd ${mod}/addons/
+	for dir in *; do
+		if [ -d ${dir} ]; then 
+			makepbo -N ${dir}
+			mv -f ${dir}.pbo /opt/arma3/${mod}/addons/${dir}.pbo
+			chmod 755 /opt/arma3/${mod}/addons/${dir}.pbo
+			echo " - added /opt/arma3/${mod}/addons/${dir}.pbo"
+		fi			
+	done
+	popd
+done
 popd
 
 # Update missions ...
