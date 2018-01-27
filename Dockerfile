@@ -14,7 +14,7 @@ RUN apt-get update \
 COPY sbin /usr/local/sbin
 WORKDIR /usr/local/sbin
 RUN chmod 500 * \
-	&& sync
+	&& sync \
 	&& install-confd \
 	&& install-depbo-tools
 
