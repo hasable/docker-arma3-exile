@@ -13,9 +13,9 @@ set -e
 
 echo "Installing BRAmaRecipes"
 # get BRAmaRecipes
-curl -Lj https://github.com/Brunzor/BRAma/archive/master.zip -o BRAmaRecipes.zip
+curl -Lj https://github.com/ndavalos/BRAmaRecipes-for-ExAd/archive/master.zip -o BRAmaRecipes.zip
 unzip BRAmaRecipes.zip && rm -rf BRAmaRecipes.zip
-brp=$(pwd)/BRAma-master/Exile/xm8Apps
+brp=$(pwd)/BRAmaRecipes-for-ExAd-master/BRAmaRecipes
 
 # prepare configuration
 set +e
@@ -38,6 +38,7 @@ for mission in *;
 do
 	cp -R ${brp}/BRAmaRecipes ${mission}/ExAdClient/XM8/Apps/
 	perl -i -p0e "s#(class\s+CfgXM8\s*\{.*?(\s*class\sExAd_\S+\s*\{.*?\}\s*;)+)(\s*\}\s*;)#\1\n	${class}\3#s" ${mission}/config.cpp
+	sed -i 's#^\(\s*extraApps.*\)\(};\s*\)$#\1,"BRAmaRecipes"\2#'  ${mission]}/config.cpp
 done
 popd
 
