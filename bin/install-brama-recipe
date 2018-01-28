@@ -15,7 +15,7 @@ echo "Installing BRAmaRecipes"
 # get BRAmaRecipes
 curl -Lj https://github.com/ndavalos/BRAmaRecipes-for-ExAd/archive/master.zip -o BRAmaRecipes.zip
 unzip BRAmaRecipes.zip && rm -rf BRAmaRecipes.zip
-brp=$(pwd)/BRAmaRecipes-for-ExAd-master/BRAmaRecipes
+brp=$(pwd)/BRAmaRecipes-for-ExAd-master
 
 # prepare configuration
 set +e
