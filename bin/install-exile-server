@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 echo "Installing exile-server-1.0.3f"
 pushd /tmp > /dev/null
 curl -LOj http://www.exilemod.com/download-all-the-files/@ExileServer-1.0.3f.zip

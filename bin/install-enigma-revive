@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 
 . /usr/local/bin/common
 
@@ -39,5 +39,5 @@ do
 done
 popd
 
-rm -rf ExileMod-Advanced-Repair-master
+rm -rf Enigma_Exile_Revive-master*
 popd

@@ -24,10 +24,10 @@ class BRAmaRecipes
 	{
 		controlID = 107000;
 		title = "Recipies";     
-		logo = "ExAdClient\\XM8\\Apps\\BRAmaRecipes\\BRAma.paa";
-		config = "ExAdClient\\XM8\\Apps\\BRAmaRecipes\\config.sqf";
-		onLoad = "ExAdClient\\XM8\\Apps\\BRAmaRecipes\\onLoad.sqf";
-		onOpen = "ExAdClient\\XM8\\Apps\\BRAmaRecipes\\onOpen.sqf";
+		logo = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\BRAmaRecipes\\\\\\\\BRAma.paa";
+		config = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\BRAmaRecipes\\\\\\\\config.sqf";
+		onLoad = "ExAdClient\\\\\\\\XM8\\Apps\\\\\\\\BRAmaRecipes\\\\\\\\onLoad.sqf";
+		onOpen = "ExAdClient\\\\\\\\XM8\\\\Apps\\\\\\\\BRAmaRecipes\\\\\\\\onOpen.sqf";
 	};
 EOF
 set -e
@@ -38,8 +38,8 @@ for mission in *;
 do
 	cp -R ${brp}/BRAmaRecipes ${mission}/ExAdClient/XM8/Apps/
 	perl -i -p0e "s#(class\s+CfgXM8\s*\{.*?(\s*class\sExAd_\S+\s*\{.*?\}\s*;)+)(\s*\}\s*;)#\1\n	${class}\3#s" ${mission}/config.cpp
-	sed -i 's#^\(\s*extraApps.*\)\(};\s*\)$#\1,"BRAmaRecipes"\2#'  ${mission]}/config.cpp
+	sed -i 's#^\(\s*extraApps.*\)\(};\s*\)$#\1,"BRAmaRecipes"\2#'  ${mission}/config.cpp
 done
 popd
 
-rm -rf BRAma-master*
+rm -rf BRAmaRecipes-for-ExAd-master*
