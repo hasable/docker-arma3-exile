@@ -40,6 +40,7 @@ WORKDIR /tmp
 RUN install-exile-server \
 	&& install-admintoolkit \
 	&& install-exad \
+	&& install-brama-recipe \
 	&& install-advanced-towing \ 
 	&& install-advanced-rappelling \
 	&& install-advanced-urban-rappelling \

@@ -1,0 +1,44 @@
+#!/bin/bash
+set -e
+
+. /usr/local/bin/common
+
+###
+# Reminder: 
+# grep 
+#  -P : use Perl syntax
+#  -o : output only matching text
+#  -z : treat file as a single line
+###
+
+echo "Installing BRAmaRecipes"
+# get BRAmaRecipes
+curl -Lj https://github.com/Brunzor/BRAma/archive/master.zip -o BRAmaRecipes.zip
+unzip BRAmaRecipes.zip && rm -rf BRAmaRecipes.zip
+brp=$(pwd)/BRAma-master/Exile/xm8Apps
+
+# prepare configuration
+set +e
+read -d '' class << EOF
+class BRAmaRecipes 
+	{
+		controlID = 107000;
+		title = "Recipies";     
+		logo = "ExAdClient\\XM8\\Apps\\BRAmaRecipes\\BRAma.paa";
+		config = "ExAdClient\\XM8\\Apps\\BRAmaRecipes\\config.sqf";
+		onLoad = "ExAdClient\\XM8\\Apps\\BRAmaRecipes\\onLoad.sqf";
+		onOpen = "ExAdClient\\XM8\\Apps\\BRAmaRecipes\\onOpen.sqf";
+	};
+EOF
+set -e
+
+# Finally update mission files
+pushd /home/steamu/sources/mpmissions
+for mission in *;
+do
+	cp -R ${brp}/BRAmaRecipes ${mission}/ExAdClient/XM8/Apps/
+	perl -i -p0e "s#(class\s+CfgXM8\s*\{.*?(\s*class\sExAd_\S+\s*\{.*?\}\s*;)+)(\s*\}\s*;)#\1\n	${class}\3#s" ${mission}/config.cpp
+done
+popd
+
+rm -rf BRAma-master*

@@ -90,6 +90,9 @@ sed -i 's#^\(ExAd_SB_Timer\s*=\)[0-9]*\(;.*Restart time measured in \)hours\(.*\
 sed -i 's#^\(\s*_hours\s*=\).*;\(\s*\)$#\1 floor ((ExAd_SB_Timer -_time) / 3600);\2#' ${exad_mission_dir}/ExAdClient/StatsBar/Functions/fn_getTimerStr.sqf
 sed -i 's#^\(\s*_minutes\s*=\).*;\(\s*\)$#\1 floor (((ExAd_SB_Timer -_time) % 3600) / 60);\2#' ${exad_mission_dir}/ExAdClient/StatsBar/Functions/fn_getTimerStr.sqf
 
+# Fix bug on StringTable
+perl -i -p0e 's#(<Package name="Hacking">)#</Package>\n\1#s' ${exad_mission_dir}/stringtable.xml
+
 line=$(sed -n '/\s*class\s\+CfgRemoteExec/=' ${exad_description_file})
 line=$(( $line - 1 ))
 exad_description=$(sed -n 1,${line}p  ${exad_description_file})

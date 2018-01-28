@@ -52,7 +52,7 @@ EOF
 			{
 				title = "Repair/Salvage";
 				condition = "true";
-				action = "_this call Bones_fnc_salvageAndRepairMenuCar";
+				action = "_this call Bones_fnc_salvageAndRepairMenuHelo";
 			};
 EOF
 	set -e
