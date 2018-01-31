@@ -5,13 +5,14 @@ set -e
 
 echo "Installing CBA A3"
 
-curl -Lj https://github.com/CBATeam/CBA_A3/releases/download/v3.5.0.171204/CBA_A3_v3.5.0.zip -o CBA_A3_v3.5.0.zip 
-unzip CBA_A3_v3.5.0.zip 
+pushd /tmp
+curl -Lj https://github.com/CBATeam/CBA_A3/releases/download/v3.6.1.180131/CBA_A3_v3.6.1.ZIP -o CBA_A3.zip 
+unzip CBA_A3.zip && rm -f CBA_A3.zip
 pushd \@CBA_A3
 rm -f *.md
-mv keys/cba_3.5.0.171204.bikey /opt/arma3/keys/cba.key
+mv keys/*.bikey /opt/arma3/keys/cba.bikey
 rmdir keys
 find . -depth -exec rename 's/(.*)\/([^\/]*)/$1\/\L$2/' {} \;
 popd
 chmod -R 755 @CBA_A3 && mv @CBA_A3 /opt/arma3/@CBA_A3
-rm -f CBA_A3_v3.5.0.zip
+popd
