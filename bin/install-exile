@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+. /usr/local/bin/common
+
 function check-urls {
 	for url in "$@" 
 	do      
@@ -12,8 +14,8 @@ function check-urls {
 		fi
 	done
 	
-	(>&2 echo "No valid RUL found to download Exile...")
-	exit 1
+	echo "No valid URL found to download Exile..."
+	exit 404
 } 
 
 echo "Installing exile-1.0.3"
@@ -32,7 +34,7 @@ url=$(check-urls http://files.theforsakensurvivors.co.uk/@Exile-1.0.3.zip \
 		https://exilecity.com/exile/@Exile1.0.3.zip \
 		https://jakah.nl/Exile/ )
 echo "- getting Exile client from ${url}"
-curl -Lj ${url} -o exile-1.0.3.zip
-unzip exile-1.0.3.zip -d /opt/arma3
-rm -rf exile-1.0.3.zip
+download ${url} @Exile-1.0.3.zip
+unzip @Exile-1.0.3.zip -d /opt/arma3 # && rm -f @Exile-1.0.3.zip
+
 popd	

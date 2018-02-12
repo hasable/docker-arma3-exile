@@ -1,11 +1,17 @@
 #!/bin/bash
 set -e
+
+. /usr/local/bin/common
+
 echo "Installing exile-server-1.0.3f"
-pushd /tmp > /dev/null
-curl -LOj http://www.exilemod.com/download-all-the-files/@ExileServer-1.0.3f.zip
+
+pushd /tmp
+download http://www.exilemod.com/download-all-the-files/@ExileServer-1.0.3f.zip @ExileServer-1.0.3f.zip 
 unzip @ExileServer-1.0.3f.zip 
+
 pushd Arma\ 3\ Server/
-cp -R @ExileServer /opt/arma3
+
+cp -R @ExileServer /opt/arma3 && rm /opt/arma3/@ExileServer/addons/exile_server_config.pbo
 rm battleye/BEServer.cfg && mv battleye/* /opt/arma3/battleye
 mv keys/* /opt/arma3/keys
 mv tbbmalloc.dll /opt/arma3
@@ -18,6 +24,15 @@ mkdir -p /home/steamu/sources/@ExileServer/addons
 pushd @ExileServer/addons
 extractpbo exile_server_config.pbo
 mv exile_server_config/exile_server_config /home/steamu/sources/@ExileServer/addons
+popd
+
+pushd /home/steamu/sources/@ExileServer/addons/exile_server_config
+sed -i "s#^\(\s*useStackedEH\s*=\s*\)0\(.*$\)#\1 1\2#" config.cpp
+sed -i "s#^\(\s*useAutoLock\s*=\s*\)0\(.*$\)#\1 1\2#" config.cpp
+sed -i "s#^\(\s*restartAutoLock\s*=\s*\)3\(.*$\)#\1 2\2#" config.cpp
+sed -i "s#^\(\s*useAutoKick\s*=\s*\)0\(.*$\)#\1 1\2#" config.cpp
+sed -i "s#^\(\s*useRestartMessages\s*=\s*\)0\(.*$\)#\1 1\2#" config.cpp
+sed -i "s#^\(\s*useShutdown\s*=\s*\)0\(.*$\)#\1 1\2#" config.cpp
 popd
 
 pushd mpmissions

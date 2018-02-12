@@ -87,8 +87,8 @@ echo "ALTER TABLE \`vehicle\` ADD CONSTRAINT \`vehicle_ibfk_2\` FOREIGN KEY (\`t
 
 # Customize time configuration
 sed -i 's#^\(ExAd_SB_Timer\s*=\)[0-9]*\(;.*Restart time measured in \)hours\(.*\)$#\1 10800\2seconds\3#' ${exad_mission_dir}/ExAdClient/StatsBar/customize.sqf
-sed -i 's#^\(\s*_hours\s*=\).*;\(\s*\)$#\1 floor ((ExAd_SB_Timer -_time) / 3600);\2#' ${exad_mission_dir}/ExAdClient/StatsBar/Functions/fn_getTimerStr.sqf
-sed -i 's#^\(\s*_minutes\s*=\).*;\(\s*\)$#\1 floor (((ExAd_SB_Timer -_time) % 3600) / 60);\2#' ${exad_mission_dir}/ExAdClient/StatsBar/Functions/fn_getTimerStr.sqf
+sed -i 's#^\(\s*_hours\s*=\).*;\(\s*\)$#\1 floor ((ExAd_SB_Timer + 59 -_time) / 3600);\2#' ${exad_mission_dir}/ExAdClient/StatsBar/Functions/fn_getTimerStr.sqf
+sed -i 's#^\(\s*_minutes\s*=\).*;\(\s*\)$#\1 floor (((ExAd_SB_Timer + 59 -_time) % 3600) / 60);\2#' ${exad_mission_dir}/ExAdClient/StatsBar/Functions/fn_getTimerStr.sqf
 
 # Fix bug on StringTable
 perl -i -p0e 's#(<Package name="Hacking">)#</Package>\n\1#s' ${exad_mission_dir}/stringtable.xml

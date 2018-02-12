@@ -72,3 +72,16 @@ function replaceSql {
 	
 	perl -i -p0e "s#(${section}.*?)(SQL.*?)(Number)#; ${comment}\n\1;\2${@//\\/\\\\}\n\3#s" ${file}
 }
+
+function download {
+	local cache=/tmp/cache
+	local url=${1}
+	local file=${2}
+	
+	if [ -r ${cache}/${file} -a -w ${cache}/${file} ]; then
+		echo "- file ${file} found in cache..."
+		mv ${cache}/${file} ${file}
+	else
+		curl -Lj ${url} -o ${file}
+	fi
+}

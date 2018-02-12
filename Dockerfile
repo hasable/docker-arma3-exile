@@ -5,6 +5,11 @@ LABEL maintainer='hasable'
 ARG USER_NAME=steamu
 ARG USER_UID=60000
 
+# Take long time, add it first to reuse cache 
+USER root
+COPY cache /tmp/cache
+RUN chown -R 60000:60000 /tmp/cache
+
 USER root
 RUN apt-get update \
 	&& apt-get -y  install  curl libtbb2:i386 liblzo2-2 libvorbis0a libvorbisfile3 libvorbisenc2 libogg0 rename unzip \
@@ -32,7 +37,7 @@ RUN chown -R ${USER_UID}:${USER_UID} /opt/arma3/keys /home/steamu/resources \
 	&& chmod -R 755 /opt/arma3/keys /home/steamu/resources
 
 # EXILE
-# Download and install Exile Client mod
+# Download and install Exile
 USER ${USER_NAME}
 RUN install-exile
 
@@ -50,6 +55,11 @@ RUN install-exile-server \
 	&& install-custom-repair \
 	&& install-enigma-revive \
 	&& install-igiload 
+
+# Temp fix for battleye
+WORKDIR /opt/arma3/battleye
+RUN cd /opt/arma3/battleye \
+	&& for f in *.txt; do sed -i 's/^7\(.*\)/1\1/g' ${f}; done
 		
 # MySQL default value
 ENV EXILE_DATABASE_HOST=mysql
@@ -77,14 +87,15 @@ ENV EXILE_CONFIG_RESTART_START=0
 # ne pas redemarrer si le serveur a demarre depuis moins de Xs
 ENV EXILE_CONFIG_RESTART_GRACE_TIME=900
 
+USER ${USER_NAME}
 WORKDIR /opt/arma3
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint", "/opt/arma3/arma3server"]
 CMD ["\"-config=conf/exile.cfg\"", \
 		"\"-servermod=@ExileServer;@AdminToolkitServer;@AdvancedRappelling;@AdvancedUrbanRappelling;@Enigma;@ExAd\"", \
 		"\"-mod=@Exile;@CBA_A3\"", \
+		"-bepath=/opt/arma3/battleye", \
 		"-world=empty", \
 		"-autoinit"]
-		
 
 #USER root
 #ENTRYPOINT [""]
