@@ -35,6 +35,7 @@ url=$(check-urls http://files.theforsakensurvivors.co.uk/@Exile-1.0.3.zip \
 		https://jakah.nl/Exile/ )
 echo "- getting Exile client from ${url}"
 download ${url} @Exile-1.0.3.zip
-unzip @Exile-1.0.3.zip -d /opt/arma3 # && rm -f @Exile-1.0.3.zip
+unzip @Exile-1.0.3.zip -d /opt/arma3 
+rm -f @Exile-1.0.3.zip
 
 popd	

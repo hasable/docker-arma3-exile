@@ -96,7 +96,3 @@ CMD ["\"-config=conf/exile.cfg\"", \
 		"-bepath=/opt/arma3/battleye", \
 		"-world=empty", \
 		"-autoinit"]
-
-#USER root
-#ENTRYPOINT [""]
-#CMD [""]		
