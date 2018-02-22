@@ -31,7 +31,5 @@ $RECYCLE.BIN/
 # Thumbnails
 ._*
 
-# Docker file caches
-cache/*
 
 
