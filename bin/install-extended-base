@@ -1,0 +1,39 @@
+#!/bin/bash
+set -e
+
+. /usr/local/bin/common
+
+echo "Installing extended base"
+
+pushd /tmp
+download null extended-base-mod-version-0.3.4.7z
+p7zip -d extended-base-mod-version-0.3.4.7z
+
+pushd @Extended_Base_Mod
+mkdir -p /opt/arma3/@EBM/addons
+mv Addons/*.pbo /opt/arma3/@EBM/addons/ && rm -rf Addons
+rm *.html *.txt && mv *.* /opt/arma3/@EBM/
+mv keys/ExtendedBase3.4.bikey /opt/arma3/keys/ && rm -rf keys
+
+ebm=$(pwd)
+
+pushd /home/steamu/sources/mpmissions
+for mission in *;
+do
+	cp -R ${ebm}/EBM ${mission}/
+	perl -i -p0e 's#(CfgCraftingRecipes.*?\{)#\1\n\#include "EBM\\recipes.hpp"\n#s' ${mission}/config.cpp
+	perl -i -p0e 's#(CfgInteractionMenus.*?\{)#\1\n\#include "EBM\\menus.hpp"\n#s' ${mission}/config.cpp
+	perl -i -p0e 's#(CfgTraderCategories.*?\{)#\1\n\#include "EBM\\traders.hpp"\n#s' ${mission}/config.cpp
+	perl -i -p0e 's#(CfgExileArsenal.*?\{)#\1\n\#include "EBM\\prices.hpp"\n#s' ${mission}/config.cpp
+	
+	perl -i -p0e 's#(Exile_Trader_Hardware.*?\{.*?\{\s*"Hardware",).*("Tools"\s*?\};)#\1"ExtendedBaseMod",\2#s' ${mission}/config.cpp
+	perl -i -p0e 's#(class\s+WaterSource.*?\{.*?\{\s*\n(\s*).*?")\s*?\n(\s*\};)#\1,\n\n\2// EBM\n\2"Tank_rust_F",\n\2"Sink_F",\n\2"Waterpump_01_F"\n\3#s' ${mission}/config.cpp
+	
+	updateCfgExileCustomCode ${mission}/config.cpp "// Extended base"
+	updateCfgExileCustomCode ${mission}/config.cpp	"exileclient_system_lootmanager_thread_spawn = \"EBM\exileclient_system_lootmanager_thread_spawn.sqf\";";
+done
+popd
+
+popd
+rm -rf @Extended_Base_Mod
+popd
