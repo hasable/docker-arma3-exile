@@ -3,11 +3,11 @@ set -e
 
 . /usr/local/bin/common
 
-echo "Installing exile-server-1.0.3f"
+echo "Installing exile-server"
 
 pushd /tmp
-download http://www.exilemod.com/download-all-the-files/@ExileServer-1.0.3f.zip @ExileServer-1.0.3f.zip 
-unzip @ExileServer-1.0.3f.zip 
+download http://85.25.202.58/download-all-the-files/ExileServer-1.0.4a.zip @ExileServer.zip 
+unzip @ExileServer.zip 
 
 pushd Arma\ 3\ Server/
 
@@ -26,6 +26,7 @@ extractpbo exile_server_config.pbo
 mv exile_server_config/exile_server_config /home/steamu/sources/@ExileServer/addons
 popd
 
+# Add extra configuration
 pushd /home/steamu/sources/@ExileServer/addons/exile_server_config
 sed -i "s#^\(\s*useStackedEH\s*=\s*\)0\(.*$\)#\1 1\2#" config.cpp
 sed -i "s#^\(\s*useAutoLock\s*=\s*\)0\(.*$\)#\1 1\2#" config.cpp
@@ -37,19 +38,15 @@ popd
 
 pushd mpmissions
 mkdir -p /home/steamu/sources/mpmissions
-for i in *.pbo; do 
+for i in Exile.*.pbo; do 
 	extractpbo $i; 
 	mission=${i%.pbo}
 	# add a marker in config.cpp file, will be usefull later
 	perl -i -p0e 's#(CfgExileCustomCode.*?/\*.*?\*/)(.*?\};)#\1\n\n        //__CUSTOM_CODE_MARKER__//\2#s' ${mission}/${mission}/config.cpp
 	
-	# remove tow tractor, as it shows an error message at startup
-	# and is useless
-	sed -i 's#^\(\s*\)\(.*Exile_Car_TowTractor_White.*\)$#\1//\2#'  ${mission}/${mission}/config.cpp
-	
 	mv ${mission}/* /home/steamu/sources/mpmissions; 
 done
 popd
 popd
-rm -rf @ExileServer-1.0.3f.zip Arma\ 3\ Server MySQL
+rm -rf @ExileServer.zip Arma\ 3\ Server MySQL
 popd

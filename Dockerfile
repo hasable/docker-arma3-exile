@@ -1,3 +1,5 @@
+# used to store resources that can neither been stored in github nor directly download from external location.
+FROM hasable/arma3-resources:latest
 FROM hasable/a3-server:latest
 LABEL maintainer='hasable'
 
@@ -8,11 +10,12 @@ ARG USER_UID=60000
 # Take long time, add it first to reuse cache 
 USER root
 COPY cache /tmp/cache
-RUN chown -R 60000:60000 /tmp/cache
+COPY --from=0 / /tmp/cache
+RUN chown -R 60000:60000 /tmp/cache && ls /tmp/cache
 
 USER root
 RUN apt-get update \
-	&& apt-get -y  install  curl libtbb2:i386 liblzo2-2 libvorbis0a libvorbisfile3 libvorbisenc2 libogg0 rename unzip \
+	&& apt-get -y  install  curl libtbb2:i386 liblzo2-2 libvorbis0a libvorbisfile3 libvorbisenc2 libogg0 p7zip rename unzip \
 	&& apt-get clean
 
 # Install stuff	
@@ -35,23 +38,22 @@ COPY keys /opt/arma3/keys
 COPY resources /home/steamu/resources
 RUN chown -R ${USER_UID}:${USER_UID} /opt/arma3/keys /home/steamu/resources \
 	&& chmod -R 755 /opt/arma3/keys /home/steamu/resources
-
+	
 # EXILE
 # Download and install Exile
 USER ${USER_NAME}
-RUN install-exile
-
 WORKDIR /tmp
-RUN install-exile-server \
+RUN install-exile-server \ 
+	&& install-exile \
+	&& install-extended-base \
 	&& install-admintoolkit \
 	&& install-exad \
-	&& install-brama-recipe \
 	&& install-advanced-towing \ 
 	&& install-advanced-rappelling \
 	&& install-advanced-urban-rappelling \
+	&& install-brama-recipe \
 	&& install-cba \
 	&& install-custom-loadout \
-	&& install-custom-restart \
 	&& install-custom-repair \
 	&& install-enigma-revive \
 	&& install-igiload 
@@ -92,7 +94,7 @@ WORKDIR /opt/arma3
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint", "/opt/arma3/arma3server"]
 CMD ["\"-config=conf/exile.cfg\"", \
 		"\"-servermod=@ExileServer;@AdminToolkitServer;@AdvancedRappelling;@AdvancedUrbanRappelling;@Enigma;@ExAd\"", \
-		"\"-mod=@Exile;@CBA_A3\"", \
+		"\"-mod=@Exile;@EBM;@CBA_A3\"", \
 		"-bepath=/opt/arma3/battleye", \
 		"-world=empty", \
 		"-autoinit"]

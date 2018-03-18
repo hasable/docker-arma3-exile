@@ -72,18 +72,18 @@ exad_mission_dir=$(pwd)/mpmissions/Exile.Altis
 
 # Not enabling everything by default
 sed -i 's#^\(\s*\)//\(\#include\s"Core.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
-sed -i 's#^\(\s*\)//\(\#include\s"Hacking.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
-sed -i 's#^\(\s*\)//\(\#include\s"Grinding.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
+#sed -i 's#^\(\s*\)//\(\#include\s"Hacking.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
+#sed -i 's#^\(\s*\)//\(\#include\s"Grinding.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
 sed -i 's#^\(\s*\)//\(\#include\s"HaloParachute.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
-sed -i 's#^\(\s*\)//\(\#include\s"XM8.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
+#sed -i 's#^\(\s*\)//\(\#include\s"XM8.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
 
 sed -i 's#^\(\s*\)//\(\#include\s.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/RscTitles.cpp
 sed -i 's#^\(\s*\)//\(\#include\s"StatsBar.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
 
 
 # Virtual garage configuration
-echo "ALTER TABLE \`vehicle\` ADD \`territory_id\` INT(11) UNSIGNED NULL DEFAULT NULL;" >> /home/steamu/sql/exile.sql
-echo "ALTER TABLE \`vehicle\` ADD CONSTRAINT \`vehicle_ibfk_2\` FOREIGN KEY (\`territory_id\`) REFERENCES \`territory\`(\`id\`) ON DELETE CASCADE ON UPDATE RESTRICT;" >> /home/steamu/sql/exile.sql
+#echo "ALTER TABLE \`vehicle\` ADD \`territory_id\` INT(11) UNSIGNED NULL DEFAULT NULL;" >> /home/steamu/sql/exile.sql
+#echo "ALTER TABLE \`vehicle\` ADD CONSTRAINT \`vehicle_ibfk_2\` FOREIGN KEY (\`territory_id\`) REFERENCES \`territory\`(\`id\`) ON DELETE CASCADE ON UPDATE RESTRICT;" >> /home/steamu/sql/exile.sql
 
 # Customize time configuration
 sed -i 's#^\(ExAd_SB_Timer\s*=\)[0-9]*\(;.*Restart time measured in \)hours\(.*\)$#\1 10800\2seconds\3#' ${exad_mission_dir}/ExAdClient/StatsBar/customize.sqf
@@ -115,14 +115,14 @@ do
 		done
 	
 	# Then deal with configuration
-	echo -e "\n" 			>> ${mission}/config.cpp
-	echo "${exad_xm8_cfg}" 	>> ${mission}/config.cpp
+	#echo -e "\n" 			>> ${mission}/config.cpp
+	#echo "${exad_xm8_cfg}" 	>> ${mission}/config.cpp
 	
-	updateCfgExileCustomCode ${mission}/config.cpp "// ExAd"
-	echo "${exad_custom_code}" | grep -Po '(?s)^\s+Exile.*;\s*$' | \
-		while read -r line; do
-			updateCfgExileCustomCode ${mission}/config.cpp "${line}"
-		done
+	#updateCfgExileCustomCode ${mission}/config.cpp "// ExAd"
+	#echo "${exad_custom_code}" | grep -Po '(?s)^\s+Exile.*;\s*$' | \
+	#	while read -r line; do
+	#		updateCfgExileCustomCode ${mission}/config.cpp "${line}"
+	#	done
 	
 	# Then deal with action (this one is touchy...)
 	
@@ -130,15 +130,15 @@ do
 	# 2) extract the required part (eg Construction{...};)
 	# 3) extract actions from the required part
 	
-	for part in Car Air Safe Laptop SupplyBox Drawbridge Construction Container Flag Boat Bikes Player Animal; 
-	do
-		echo "${exad_interactions_menus}"  | \
-			grep -Pzo "(?sx)(class\s+${part}+\s+\{.*?class\s+Actions\s+\{([^\}]*?class.*?\{.*?\};)*)(\s*};\s*};)"  | \
-			grep -Pzo "(?s)(class\s+\S+\s*:\s*ExileAbstractAction\s*\{.*?\}\s*;\s*)*" | \
-			while read -r line; do
-				updateInteractXAction ${part} ${mission}/config.cpp "${line}"
-			done
-	done
+	#for part in Car Air Safe Laptop SupplyBox Drawbridge Construction Container Flag Boat Bikes Player Animal; 
+	#do
+	#	echo "${exad_interactions_menus}"  | \
+	#		grep -Pzo "(?sx)(class\s+${part}+\s+\{.*?class\s+Actions\s+\{([^\}]*?class.*?\{.*?\};)*)(\s*};\s*};)"  | \
+	#		grep -Pzo "(?s)(class\s+\S+\s*:\s*ExileAbstractAction\s*\{.*?\}\s*;\s*)*" | \
+	#		while read -r line; do
+	#			updateInteractXAction ${part} ${mission}/config.cpp "${line}"
+	#		done
+	#done
 	
 	# Finally copy client files
 	cp -r ${exad_mission_dir}/ExAdClient ${mission}	

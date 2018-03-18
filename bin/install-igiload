@@ -5,18 +5,35 @@ set -e
 
 echo "Installing IgiLoad"
 
+url=https://github.com/slb2k11/Exile_Igiload/archive/master.zip
+download ${url} Igiload.zip
+unzip Igiload.zip
+pushd Exile_Igiload-master
+mv Igiload IgiLoad
+src=$(pwd)
+
+pushd IgiLoad
+sed -i 's#^\(\s*\)//\(cutText\)#\1\2#' IgiLoadInit.sqf
+popd
+
 pushd /home/steamu/sources/mpmissions
 for mission in *;
 do
 	echo ${mission}
 	mkdir -p ${mission}/Custom/Restart
-	cp -R /home/steamu/resources/IgiLoad  ${mission}/
+	cp -R ${src}/IgiLoad  ${mission}/
+	cp ${src}/ExileClient_object_player_event_onEnterSafezone.sqf  ${mission}/IgiLoad/
+	
 	
 	echo "// Igiload" >> ${mission}/init.sqf
 	echo "[] execVM \"IgiLoad\IgiLoadInit.sqf\";" >> ${mission}/init.sqf
+	echo "" >> ${mission}/init.sqf
 	
 	updateCfgExileCustomCode ${mission}/config.cpp "// IgiLoad"
-	updateCfgExileCustomCode ${mission}/config.cpp "ExileClient_object_player_event_onEnterSafezon = \"Igiload\ExileClient_object_player_event_onEnterSafezone.sqf\";"
+	updateCfgExileCustomCode ${mission}/config.cpp "ExileClient_object_player_event_onEnterSafezon = \"IgiLoad\ExileClient_object_player_event_onEnterSafezone.sqf\";"
 	
 done
 popd
+
+popd
+rm -r Exile_Igiload-master

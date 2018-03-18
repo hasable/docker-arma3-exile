@@ -21,21 +21,19 @@ function check-urls {
 echo "Installing exile-1.0.3"
 
 pushd /tmp
-url=$(check-urls http://files.theforsakensurvivors.co.uk/@Exile-1.0.3.zip \
-		http://212.47.235.135/@Exile.zip \
-		http://198.199.85.30/@Exile.zip \
-		http://capwell.uk/exile-mirror/@Exile.zip \
-		http://159.203.18.3/@Exile.zip \
-		http://198.199.85.30/@Exile.zip \
-		http://bravofoxtrotcompany.com/exile/@Exile-1.0.3.zip \
-		https://cdn.whocaresabout.de/exile/@Exile-1.0.3.zip \
-		http://www.friendlyplayershooting.com/exilemod/103/@Exile.zip \
-		https://dl.hunters-tavern.de/exilemod/client/@Exile-1.0.3.zip \
-		https://exilecity.com/exile/@Exile1.0.3.zip \
-		https://jakah.nl/Exile/ )
+url=$(check-urls http://85.25.202.58/download-all-the-files/@Exile-1.0.4.zip \
+	http://palmbeachpc.com/@Exile-1.0.4.zip	\
+	https://vps-0.united-gamers.online/@Exile-1.0.4.zip \
+	https://die-garde47.tk/download/@Exile-1.0.4.zip \
+	http://cdn.thepotatosack.com/exile/client/@Exile-1.0.4.zip \
+	http://forum.bravofoxtrotcompany.com/exile/@Exile-1.0.4.zip \
+	https://majormittens.co.uk/exilemod/104/@Exile-1.0.4.zip \
+	http://www.friendlyplayershooting.com/exilemod/104/@Exile-1.0.4.zip \
+	https://exilecity.com/downloads/Exile-1.0.4.zip \
+	https://cdn.helldog.me/exilemod/@Exile-1.0.4.zip )
 echo "- getting Exile client from ${url}"
-download ${url} @Exile-1.0.3.zip
-unzip @Exile-1.0.3.zip -d /opt/arma3 
-rm -f @Exile-1.0.3.zip
+download ${url} @Exile.zip
+unzip @Exile.zip -d /opt/arma3 
+rm -f @Exile.zip
 
 popd	

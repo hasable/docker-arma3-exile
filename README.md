@@ -26,31 +26,30 @@ docker build \\
 
 ### First run only
 
-You will need first a database to run Exile, just use Docker :
+You will need first a database to run Exile. 
+
+First create a volume : 
+```bash
+docker volume create exile-database-content
+```
+
+Then use docker to populate volume: 
 ```bash
 docker pull mysql/mysql-server:5.7.19-1.1.1
+docker run --name arma-3-exile-database -v exile-database-content:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=<your root password> -d mysql/mysql-server:5.7.19-1.1.1 --sql-mode=ONLY_FULL_GROUP_BY,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
 ```
 
-Use volume to mount init script on first run :
+Connect to database and run scripts : 
 ```bash
-docker run --name <container name>
-	-v <data directory>:/var/lib/mysql
-	-v resources/exile-1.0.3f.sql:/tmp/exile-1.0.3f.sql
-	-e MYSQL_ROOT_PASSWORD=<your password>
-	-d mysql/mysql-server:5.7.19-1.1.1
-	--sql-mode=ONLY_FULL_GROUP_BY,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
-```
-
-Then use docker to initialize database:
-```bash
-docker exec -it <container name> mysql -u root -p
-create database if not exists <database name>;
-create user '<database user>'@'localhost' identified by '<database password>';
-grant all privileges on <database name>.* to '<database user>'@'localhost';
+(winpty) docker exec -it arma-3-exile-database mysql -u root -p
+create database if not exists <database_name>;
+create user '<database_user>'@'%' identified by '<database_password>';
+grant all privileges on database_name.* to 'database_user'@'%';
 flush privileges;
-source /tmp/exile-1.0.3f.sql
-quit
 ```
+
+Then copy and paste Exile SQL database initialisation file in console, then type "Exit".
+
 ### Nominal mode
 
 Run the previously created database :
