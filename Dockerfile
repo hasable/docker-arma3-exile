@@ -35,7 +35,6 @@ COPY bin /usr/local/bin
 RUN chmod +x /usr/local/bin/*
 
 COPY keys /opt/arma3/keys
-COPY resources /home/steamu/resources
 RUN chown -R ${USER_UID}:${USER_UID} /opt/arma3/keys /home/steamu/resources \
 	&& chmod -R 755 /opt/arma3/keys /home/steamu/resources
 	
