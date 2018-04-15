@@ -18,7 +18,7 @@ function check-urls {
 	exit 404
 } 
 
-echo "Installing exile-1.0.3"
+echo "Installing exile-1.0.4"
 
 pushd /tmp
 url=$(check-urls http://85.25.202.58/download-all-the-files/@Exile-1.0.4.zip \

@@ -10,21 +10,24 @@ set -e
 #  -o : output only matching text
 #  -z : treat file as a single line
 ###
+pushd /tmp
 
-echo "Installing ExAd.0.10.0"
-# get admintoolkit
-curl -Lj https://github.com/Bjanski/ExAd/archive/v0.10.0.tar.gz -o ExAd-0.10.0.tar.gz
-tar xvfz ExAd-0.10.0.tar.gz
-pushd ExAd-0.10.0
+echo "Installing ExAd.1.0.4"
+# get Exad
+url=https://goo.gl/prxF7k
+archive=exad-1.0.4.7z
+
+download ${url} ${archive}
+p7zip -d  ${archive} && mv "exad-1.0.4" exad
+pushd exad
 
 # Deal with server side PBO
 mkdir -p /opt/arma3/@ExAd/addons
 pushd @ExileServer/addons
-for pbo in *; 
-do
-	makepbo -N ${pbo} 
-	mv ${pbo}.pbo /opt/arma3/@ExAd/addons/
-done
+for i in *.pbo; 
+do 
+	mv -v ${i}  /opt/arma3/@ExAd/addons/
+done;
 popd
 
 # Then deal with sql (server side)
@@ -66,39 +69,176 @@ done < exile.ini
 popd
 
 # Prepare mission configuration
-exad_config_file=$(pwd)/mpmissions/Exile.Altis/config.cpp
-exad_description_file=$(pwd)/mpmissions/Exile.Altis/description.ext
-exad_mission_dir=$(pwd)/mpmissions/Exile.Altis
+exad_config_file=$(pwd)/mission/config.cpp
+exad_description_file=$(pwd)/mission/description.ext
+exad_mission_dir=$(pwd)/mission
 
-# Not enabling everything by default
-sed -i 's#^\(\s*\)//\(\#include\s"Core.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
-#sed -i 's#^\(\s*\)//\(\#include\s"Hacking.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
-#sed -i 's#^\(\s*\)//\(\#include\s"Grinding.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
+# Enabling halo parachute
 sed -i 's#^\(\s*\)//\(\#include\s"HaloParachute.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
-#sed -i 's#^\(\s*\)//\(\#include\s"XM8.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
-
-sed -i 's#^\(\s*\)//\(\#include\s.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/RscTitles.cpp
-sed -i 's#^\(\s*\)//\(\#include\s"StatsBar.*\)$#\1\2#' ${exad_mission_dir}/ExAdClient/CfgFunctions.cpp
-
-
-# Virtual garage configuration
-#echo "ALTER TABLE \`vehicle\` ADD \`territory_id\` INT(11) UNSIGNED NULL DEFAULT NULL;" >> /home/steamu/sql/exile.sql
-#echo "ALTER TABLE \`vehicle\` ADD CONSTRAINT \`vehicle_ibfk_2\` FOREIGN KEY (\`territory_id\`) REFERENCES \`territory\`(\`id\`) ON DELETE CASCADE ON UPDATE RESTRICT;" >> /home/steamu/sql/exile.sql
 
 # Customize time configuration
 sed -i 's#^\(ExAd_SB_Timer\s*=\)[0-9]*\(;.*Restart time measured in \)hours\(.*\)$#\1 10800\2seconds\3#' ${exad_mission_dir}/ExAdClient/StatsBar/customize.sqf
 sed -i 's#^\(\s*_hours\s*=\).*;\(\s*\)$#\1 floor ((ExAd_SB_Timer + 59 -_time) / 3600);\2#' ${exad_mission_dir}/ExAdClient/StatsBar/Functions/fn_getTimerStr.sqf
 sed -i 's#^\(\s*_minutes\s*=\).*;\(\s*\)$#\1 floor (((ExAd_SB_Timer + 59 -_time) % 3600) / 60);\2#' ${exad_mission_dir}/ExAdClient/StatsBar/Functions/fn_getTimerStr.sqf
 
-# Fix bug on StringTable
-perl -i -p0e 's#(<Package name="Hacking">)#</Package>\n\1#s' ${exad_mission_dir}/stringtable.xml
-
 line=$(sed -n '/\s*class\s\+CfgRemoteExec/=' ${exad_description_file})
 line=$(( $line - 1 ))
 exad_description=$(sed -n 1,${line}p  ${exad_description_file})
-exad_xm8_cfg=$(grep -Pzo '(?s)class\s+CfgXM8\s+{.*?(class\s+[A-z_]+\s+{.*?};\s*)+\s*}\s*;' ${exad_config_file})
-exad_custom_code=$(grep -Pzo '(?s)class\s+CfgExileCustomCode\s+{.*?};' ${exad_config_file})
-exad_interactions_menus=$(grep -Pzo '(?s)class\s+CfgInteractionMenus\s+{.*?(class\s+[A-z_]+\s+{.*?(class\s+Actions\s+{.*?(class\s+[A-z_]+\s*:\s*[A-z_]+\s*{.*?}\s*;\s*)*};\s*)*}\s*;\s*)*}\s*;' ${exad_config_file} )
+
+# configure xm8 configuration
+extrapps="extraApps[] = {\"ExAd_JX\",\"ExAd_Info\",\"ExAd_CHVD\",\"BRAmaRecipes\",\"BaseMarker\",\"ExAd_SB\",\"ExAd_Quad\",\"ExAd_Unit\"};"
+	
+set +e
+read -d '' exad_xm8_cfg << EOF
+        /*
+        * Make sure you change the server rules to match your desires.
+        * You can find the file at ExAdClient\XM8\apps\info
+        * The file you want to change is message.sqf
+        */
+        class ExAd_Info
+        {
+            title = "Server Rules"; //IDC:50100 -> 50102 || These need to be unique and out of range from each other
+            controlID = 50100;               
+            logo = "ExadClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\Info\\\\\\\\Icon_SI.paa";
+            onLoad = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\Info\\\\\\\\onLoad.sqf";
+            onOpen = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\Info\\\\\\\\onOpen.sqf";
+            onClose = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\Info\\\\\\\\onClose.sqf";
+        };
+        class ExAd_CHVD
+        {
+            title = "View Distance Settings";
+            controlID = 50200;               
+            config = "ExadClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\CHVD\\\\\\\\config.sqf";
+            logo = "ExadClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\CHVD\\\\\\\\Icon_CHVD.paa";
+            onLoad = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\CHVD\\\\\\\\onLoad.sqf";
+            onOpen = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\CHVD\\\\\\\\onOpen.sqf";
+            onClose = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\CHVD\\\\\\\\onClose.sqf";
+        };
+        class ExAd_JX
+        {
+            title = "Unit Scanner";
+            controlID = 85100;
+            logo = "ExadClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\JX\\\\\\\\logo.paa";
+            onLoad = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\JX\\\\\\\\onLoad.sqf";
+            onOpen = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\JX\\\\\\\\onOpen.sqf";
+            onClose = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\JX\\\\\\\\onClose.sqf";
+        };
+        class BRAmaRecipes
+        {
+            controlID = 107000;
+            title = "Recipies";
+            logo = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\BRAmaRecipes\\\\\\\\BRAma.paa";
+            config = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\BRAmaRecipes\\\\\\\\config.sqf";
+            onLoad = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\BRAmaRecipes\\\\\\\\onLoad.sqf";
+            onOpen = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\BRAmaRecipes\\\\\\\\onOpen.sqf";
+        };
+        class BaseMarker
+        {
+            title = "Base Marker";
+            controlID = 70001;
+            logo = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\BaseMarker\\\\\\\\BaseMarker.paa";
+            onLoad = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\BaseMarker\\\\\\\\onLoad.sqf";
+        };
+        class ExAd_SB
+        {
+            title = "Statsbar Settings";
+            controlID = 50400;               //IDC:50400 -> 50475 || These need to be unique and out of range from each other
+            logo = "exile_assets\\\\\\\\texture\\\\\\\\ui\\\\\\\\xm8_app_settings_ca.paa";
+            onLoad = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\SB_Settings\\\\\\\\onLoad.sqf";
+        };
+        class ExAd_Quad
+        {
+            title = "Deploy Quad Bike";
+            config = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\DeployVehicle\\\\\\\\config.sqf";
+            logo = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\DeployVehicle\\\\\\\\Quad.paa";
+            bambiState = 0;
+            vehicleClass = "Exile_Bike_QuadBike_Fia";
+            recipe[] = {{"Exile_Item_ExtensionCord",1}};
+            packable = 1;
+            autoCleanUp = 1;
+            quickFunction = "['ExAd_Quad'] call ExAd_XM8_DV_fnc_spawnVehicle";
+        };
+        class ExAd_Unit
+        {
+            title = "Recruit Soldier: x2 Beef Parts needed";
+            logo = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\DeployVehicle\\\\\\\\dog.paa";
+            bambiState = 0;
+            vehicleClass = "Land_AncientStatue_01_F";
+            recipe[] = {{"Exile_Item_BeefParts",1}};
+            packable = 0;
+            autoCleanUp = 0;
+            quickFunction = "['ExAd_Unit'] call ExAd_XM8_DV_fnc_spawnVehicle";
+        };
+EOF
+set -e
+
+set +e
+read -d '' exad_xm8_btn << EOF
+class XM8_App05_Button: RscExileXM8AppButton1x1
+{
+	textureNoShortcut = "ExadClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\CHVD\\\\\\\\Icon_CHVD.paa";
+	text = "View Distance Settings";
+	onButtonClick = "['ExAd_CHVD', 0] call ExileClient_gui_xm8_slide";
+	resource = "";
+};
+
+class XM8_App06_Button: RscExileXM8AppButton1x1
+{
+	textureNoShortcut = "ExadClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\Info\\\\\\\\Icon_SI.paa";
+	text = "Server Rules";
+	onButtonClick = "['ExAd_Info', 0] call ExileClient_gui_xm8_slide";
+	resource = "";
+};
+
+class XM8_App07_Button: RscExileXM8AppButton1x1
+{
+	textureNoShortcut = "ExadClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\JX\\\\\\\\logo.paa";
+	text = "Unit Scanner";
+	onButtonClick = "['ExAd_JX', 0] call ExileClient_gui_xm8_slide";
+	resource = "";
+};
+
+class XM8_App08_Button: RscExileXM8AppButton1x1
+{
+	textureNoShortcut = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\DeployVehicle\\\\\\\\dog.paa";
+	text = "Recruit Soldier: 1x Beef Parts needed";
+	onButtonClick = "ExileClientXM8CurrentSlide = 'apps';closeDialog 0;[] execVM 'ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\DeployVehicle\\\\\\\\bodyguard.sqf'";
+	resource = "";
+};
+
+class XM8_App09_Button: RscExileXM8AppButton1x1
+{
+	textureNoShortcut = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\BRAmaRecipes\\\\\\\\BRAma.paa";
+	text = "BRAmaRecipes";
+	onButtonClick = "['BRAmaRecipes', 0] call ExileClient_gui_xm8_slide";
+	resource = "";
+};
+
+class XM8_App10_Button: RscExileXM8AppButton1x1
+{
+	textureNoShortcut = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\BaseMarker\\\\\\\\BaseMarker.paa";
+	text = "Base Marker";
+	onButtonClick = "['Basemarker', 0] call ExileClient_gui_xm8_slide";
+	resource = "";
+};
+
+class XM8_App11_Button: RscExileXM8AppButton1x1
+{
+	textureNoShortcut = "exile_assets\\\\\\\\texture\\\\\\\\ui\\\\\\\\xm8_app_settings_ca.paa";
+	text = "Status Bar Settings";
+	onButtonClick = "['ExAd_SB', 0] call ExileClient_gui_xm8_slide";
+	resource = "";
+};
+
+class XM8_App12_Button: RscExileXM8AppButton1x1
+{
+	textureNoShortcut = "ExAdClient\\\\\\\\XM8\\\\\\\\Apps\\\\\\\\DeployVehicle\\\\\\\\Quad.paa";
+	text = "Deploy Quad Bike";
+	onButtonClick = "['ExAd_Quad'] call ExAd_XM8_DV_fnc_spawnVehicle";
+	resource = "";
+};
+EOF
+set -e
 
 # Finally update mission files
 pushd /home/steamu/sources/mpmissions
@@ -115,36 +255,21 @@ do
 		done
 	
 	# Then deal with configuration
-	#echo -e "\n" 			>> ${mission}/config.cpp
-	#echo "${exad_xm8_cfg}" 	>> ${mission}/config.cpp
+	updateCfgExileCustomCode ${mission}/config.cpp "// ExAd"
+	updateCfgExileCustomCode ${mission}/config.cpp "ExileClient_gui_xm8_slide = \"ExAdClient\XM8\CustomCode\ExileClient_gui_xm8_slide.sqf\";"
+    updateCfgExileCustomCode ${mission}/config.cpp "ExileClient_gui_xm8_show  = \"ExAdClient\XM8\CustomCode\ExileClient_gui_xm8_show.sqf\";"
 	
-	#updateCfgExileCustomCode ${mission}/config.cpp "// ExAd"
-	#echo "${exad_custom_code}" | grep -Po '(?s)^\s+Exile.*;\s*$' | \
-	#	while read -r line; do
-	#		updateCfgExileCustomCode ${mission}/config.cpp "${line}"
-	#	done
-	
-	# Then deal with action (this one is touchy...)
-	
-	# 1) get CfgInteractionMenus{...}; from the source file 
-	# 2) extract the required part (eg Construction{...};)
-	# 3) extract actions from the required part
-	
-	#for part in Car Air Safe Laptop SupplyBox Drawbridge Construction Container Flag Boat Bikes Player Animal; 
-	#do
-	#	echo "${exad_interactions_menus}"  | \
-	#		grep -Pzo "(?sx)(class\s+${part}+\s+\{.*?class\s+Actions\s+\{([^\}]*?class.*?\{.*?\};)*)(\s*};\s*};)"  | \
-	#		grep -Pzo "(?s)(class\s+\S+\s*:\s*ExileAbstractAction\s*\{.*?\}\s*;\s*)*" | \
-	#		while read -r line; do
-	#			updateInteractXAction ${part} ${mission}/config.cpp "${line}"
-	#		done
-	#done
+	perl -i -p0e "s#(class\s+CfgXM8.*?\{.*?)(class\s+settings)#\1${extrapps}\n\n        \2#s" ${mission}/config.cpp
+	perl -i -p0e "s#(class\s+CfgXM8.*?\{.*?class\s+.*?\{.*?};)(\s*};)#\1\n${exad_xm8_cfg}\2#s" ${mission}/config.cpp
+	perl -i -p0e "s#class\s+XM8_App05_Button.*XM8_App12_Button.*?};#${exad_xm8_btn}#s" ${mission}/config.cpp
 	
 	# Finally copy client files
 	cp -r ${exad_mission_dir}/ExAdClient ${mission}	
 	cp ${exad_mission_dir}/stringtable.xml ${mission}/stringtable.xml
-	
+
 done
 popd
 popd
-rm -rf ExAd*
+rm -rf exad*
+
+popd

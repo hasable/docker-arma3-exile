@@ -1,12 +1,12 @@
 #!/bin/bash
 set -ex
-echo "Installing libdepbo.so.0.6.54"
+echo "Installing libdepbo.so.0.6.74"
 {
 	pushd /opt
-	wget -q https://armaservices.maverick-applications.com/Products/MikerosDosTools/DownloadFree.aspx?download=depbo-tools-0.6.54-linux-64bit.tgz -O depbo-tools-0.6.54-linux-64bit.tgz
-	tar xvfz depbo-tools-0.6.54-linux-64bit.tgz && rm depbo-tools-0.6.54-linux-64bit.tgz
-	for i in depbo-tools-0.6.54/bin/*; do ln -s $(pwd)/depbo-tools-0.6.54/bin/${i##*/} /usr/local/bin; done 
-	ln -s $(pwd)/depbo-tools-0.6.54/lib/libdepbo.so.0 /usr/local/lib/
+	cp /tmp/cache/depbo-tools-0.6.74-linux-64bit.tgz .
+	tar xvfz depbo-tools-0.6.74-linux-64bit.tgz && rm depbo-tools-0.6.74-linux-64bit.tgz
+	for i in depbo-tools-0.6.74/bin/*; do ln -s $(pwd)/depbo-tools-0.6.74/bin/${i##*/} /usr/local/bin; done 
+	ln -s $(pwd)/depbo-tools-0.6.74/lib/libdepbo.so.0 /usr/local/lib/
 	ldconfig
 	popd 
 } > /dev/null

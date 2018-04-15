@@ -1,6 +1,6 @@
 # used to store resources that can neither been stored in github nor directly download from external location.
-FROM hasable/arma3-resources:latest
-FROM hasable/a3-server:latest
+FROM hasable/arma3-resources:v2
+FROM hasable/a3-server:1.82
 LABEL maintainer='hasable'
 
 # Server user
@@ -50,7 +50,6 @@ RUN install-exile-server \
 	&& install-advanced-towing \ 
 	&& install-advanced-rappelling \
 	&& install-advanced-urban-rappelling \
-	&& install-brama-recipe \
 	&& install-cba \
 	&& install-custom-loadout \
 	&& install-custom-repair \
