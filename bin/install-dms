@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+
+. /usr/local/bin/common
+
+echo "Installing dynamic missions"
+
+cd /tmp
+curl -Lj https://github.com/Defent/DMS_Exile/archive/Feb.12.2018.zip -o dms.zip 
+unzip dms && rm -f dms.zip
+cd DMS_Exile-Feb.12.2018/\@ExileServer
+
+cp -r addons /opt/arma3/@ExileServer/
+rm -rf /tmp/DMS_Exile-Feb.12.2018
