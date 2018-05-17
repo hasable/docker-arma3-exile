@@ -54,7 +54,8 @@ RUN install-exile-server \
 	&& install-custom-loadout \
 	&& install-custom-repair \
 	&& install-enigma-revive \
-	&& install-igiload 
+	&& install-igiload \
+	&& install-dms
 
 # Temp fix for battleye
 WORKDIR /opt/arma3/battleye
