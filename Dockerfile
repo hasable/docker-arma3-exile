@@ -1,6 +1,6 @@
 # used to store resources that can neither been stored in github nor directly download from external location.
 FROM hasable/arma3-resources:v2
-FROM hasable/a3-server:1.82
+FROM hasable/a3-server:1.84
 LABEL maintainer='hasable'
 
 # Server user
