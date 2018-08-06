@@ -6,7 +6,7 @@ set -e
 echo "Installing CBA A3"
 
 pushd /tmp
-curl -Lj https://github.com/CBATeam/CBA_A3/releases/download/v3.7.1.180604/CBA_v3.7.1.ZIP -o CBA_A3.zip 
+curl -Lj https://github.com/CBATeam/CBA_A3/releases/download/v3.8.0.180801/CBA_A3_v3.8.0.zip -o CBA_A3.zip 
 unzip CBA_A3.zip && rm -f CBA_A3.zip
 pushd \@CBA_A3
 rm -f *.md
